@@ -7,20 +7,33 @@ interface DashboardNavbarProps {
   sidebarCollapsed: boolean;
 }
 
+const readUser = () => {
+  try { return JSON.parse(localStorage.getItem('user') || '{}'); }
+  catch { return {}; }
+};
+
 export const DashboardNavbar: React.FC<DashboardNavbarProps> = ({ sidebarCollapsed }) => {
   const [profileOpen, setProfileOpen] = useState(false);
+  const [user, setUser] = useState(readUser);
   const ref = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
-  const storedUser = localStorage.getItem('user');
-  const user = storedUser ? JSON.parse(storedUser) : { username: 'User', email: 'user@example.com' };
 
   useEffect(() => {
+    // close dropdown on outside click
     const handler = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) setProfileOpen(false);
     };
     document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, []);
+
+    // re-sync user (avatar, username…) whenever Settings saves
+    const syncUser = () => setUser(readUser());
+    window.addEventListener('user-updated', syncUser);
+
+    return () => {
+      document.removeEventListener('mousedown', handler);
+      window.removeEventListener('user-updated', syncUser);
+    };
+  }, [])
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -51,8 +64,11 @@ export const DashboardNavbar: React.FC<DashboardNavbarProps> = ({ sidebarCollaps
             onClick={() => setProfileOpen(v => !v)}
             className="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900 px-3 py-2 text-sm text-slate-300 transition-all duration-200 hover:border-slate-700 hover:text-white"
           >
-            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-cyan-500 text-xs font-bold text-white">
-              {user.username?.[0]?.toUpperCase() ?? 'U'}
+            <div className="flex h-6 w-6 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-violet-500 to-cyan-500 text-xs font-bold text-white">
+              {user.avatar
+                ? <img src={user.avatar} alt="avatar" className="h-full w-full object-cover" />
+                : (user.username?.[0]?.toUpperCase() ?? 'U')
+              }
             </div>
             <span className="hidden sm:block">{user.username}</span>
             <ChevronDown className={cn('h-3 w-3 transition-transform duration-200', profileOpen && 'rotate-180')} />
@@ -60,9 +76,17 @@ export const DashboardNavbar: React.FC<DashboardNavbarProps> = ({ sidebarCollaps
 
           {profileOpen && (
             <div className="absolute right-0 top-12 w-56 rounded-xl border border-slate-800 bg-slate-900 shadow-xl shadow-black/40 py-1 animate-scale-in">
-              <div className="px-4 py-3 border-b border-slate-800">
-                <p className="text-sm font-medium text-white">{user.username}</p>
-                <p className="text-xs text-slate-400 truncate">{user.email}</p>
+              <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-800">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-violet-500 to-cyan-500 text-sm font-bold text-white">
+                  {user.avatar
+                    ? <img src={user.avatar} alt="avatar" className="h-full w-full object-cover" />
+                    : (user.username?.[0]?.toUpperCase() ?? 'U')
+                  }
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-white truncate">{user.username}</p>
+                  <p className="text-xs text-slate-400 truncate">{user.email}</p>
+                </div>
               </div>
               <button
                 onClick={() => navigate('/dashboard/settings')}

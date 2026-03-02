@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Home } from './pages/Home';
 import { Dashboard } from './pages/Dashboard';
 import { Contact } from './pages/Contact';
+import { Settings } from './pages/Settings';
 import { DashboardLayout } from './components/layout/DashboardLayout';
 
 export default function App() {
@@ -18,7 +19,7 @@ export default function App() {
           <Route path="/dashboard/reports" element={<Dashboard />} />
           <Route path="/dashboard/insights" element={<Dashboard />} />
           <Route path="/dashboard/users" element={<Dashboard />} />
-          <Route path="/dashboard/settings" element={<Dashboard />} />
+          <Route path="/dashboard/settings" element={<Settings />} />
         </Route>
 
         {/* Legacy redirects */}
