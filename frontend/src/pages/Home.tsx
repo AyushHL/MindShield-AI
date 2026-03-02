@@ -23,7 +23,7 @@ export const Home = () => {
         </div>
         <div className="relative z-10 max-w-4xl text-center">
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-violet-500/30 bg-violet-500/10 px-4 py-1.5 text-xs font-medium text-violet-300">
-            <Zap className="h-3 w-3" /> DTU B.Tech Minor Project · Bi-LSTM Deep Learning
+            <Zap className="h-3 w-3" /> Bi-LSTM Based Risk Classification
           </div>
           <h1 className="text-5xl font-bold leading-tight tracking-tight text-white md:text-6xl lg:text-7xl">
             Detect Mental Health
@@ -125,7 +125,7 @@ export const Home = () => {
           <div className="flex items-center gap-2">
             <Shield className="h-5 w-5 text-violet-500" />
             <span className="font-semibold text-slate-300">MindShield AI</span>
-            <span>· DTU B.Tech Minor Project</span>
+            <span>· Delhi Technological University, Delhi, India </span>
           </div>
           <p>© {new Date().getFullYear()} MindShield. All rights reserved.</p>
         </div>
