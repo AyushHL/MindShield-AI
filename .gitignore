@@ -24,9 +24,6 @@ venv/
 env/
 *.egg-info/
 
-# ML model files — too large for git (host separately or use Git LFS)
-model_service/bilstm_model.keras
-
 # Logs
 *.log
 npm-debug.log*
