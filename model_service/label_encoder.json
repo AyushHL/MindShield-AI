@@ -1,0 +1,7 @@
+{
+  "classes": [
+    "no_risk",
+    "low_risk",
+    "high_risk"
+  ]
+}
