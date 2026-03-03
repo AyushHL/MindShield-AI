@@ -123,10 +123,16 @@ export const PublicNavbar: React.FC<{ onLoginClick: () => void; onSignupClick: (
         </div>
         <div className="hidden md:flex items-center gap-8">
           {['Features', 'How It Works', 'Contact'].map(item => (
-            <a key={item} href={`#${item.toLowerCase().replace(/\s/g, '-')}`}
-              className="text-sm text-slate-400 transition-colors hover:text-white">
+            <button
+              key={item}
+              onClick={() => {
+                const id = item.toLowerCase().replace(/\s/g, '-');
+                document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="text-sm text-slate-400 transition-colors hover:text-white"
+            >
               {item}
-            </a>
+            </button>
           ))}
         </div>
         <div className="flex items-center gap-3">

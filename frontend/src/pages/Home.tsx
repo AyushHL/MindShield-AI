@@ -37,9 +37,12 @@ export const Home = () => {
             <button onClick={openSignup} className="inline-flex items-center gap-2 rounded-xl bg-violet-600 px-6 py-3 text-sm font-semibold text-white shadow-xl shadow-violet-500/25 transition-all hover:bg-violet-500 hover:shadow-violet-500/40">
               Get Started Free <ArrowRight className="h-4 w-4" />
             </button>
-            <a href="#how-it-works" className="inline-flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-900 px-6 py-3 text-sm font-medium text-slate-300 transition-all hover:border-slate-600 hover:text-white">
+            <button
+              onClick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })}
+              className="inline-flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-900 px-6 py-3 text-sm font-medium text-slate-300 transition-all hover:border-slate-600 hover:text-white"
+            >
               How It Works
-            </a>
+            </button>
           </div>
           <div className="mt-16 flex flex-wrap items-center justify-center gap-8 text-sm text-slate-500">
             {['No Risk Classification', 'Potential Risk Detection', 'High Risk — Urgent Alert'].map(t => (
