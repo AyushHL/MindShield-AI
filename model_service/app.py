@@ -17,14 +17,14 @@ from tensorflow.keras.preprocessing.sequence import pad_sequences
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 
-# ── NLTK data ─────────────────────────────────────────────────────────────────
+# NLTK data
 for corpus in ['stopwords', 'wordnet', 'omw-1.4']:
     try:
         nltk.data.find(f'corpora/{corpus}')
     except LookupError:
         nltk.download(corpus, quiet=True)
 
-# ── Constants ──────────────────────────────────────────────────────────────────
+# Constants
 MAX_SEQUENCE_LENGTH = 100
 TOKEN_PATTERN = re.compile(r"[^a-zA-Z0-9\s]")
 
@@ -33,7 +33,7 @@ lemmatizer  = WordNetLemmatizer()
 
 BASE_PATH = os.path.dirname(os.path.abspath(__file__))
 
-# ── Load artifacts once at startup ────────────────────────────────────────────
+# Load artifacts once at startup
 print("Loading model artifacts …")
 
 model = tf.keras.models.load_model(os.path.join(BASE_PATH, 'bilstm_model.keras'))
@@ -46,14 +46,14 @@ with open(os.path.join(BASE_PATH, 'label_encoder.json'), 'r', encoding='utf-8') 
 
 print(f"Model loaded. Classes: {classes}")
 
-# ── Label map (report-aligned) ────────────────────────────────────────────────
+# Label map (report-aligned)
 LABEL_MAP = {
     'no_risk':   {'label': 'No Risk',            'classId': 0, 'scoreRange': (0,  25)},
     'low_risk':  {'label': 'Potential Risk',     'classId': 1, 'scoreRange': (26, 69)},
     'high_risk': {'label': 'High Risk — Urgent', 'classId': 2, 'scoreRange': (70, 100)},
 }
 
-# ── FastAPI app ────────────────────────────────────────────────────────────────
+# FastAPI app
 app = FastAPI(title="MindShield ML Service", version="1.0.0")
 
 
@@ -111,7 +111,7 @@ def predict(body: PredictRequest):
     )
 
 
-# ── Entry point ───────────────────────────────────────────────────────────────
+# Entry point
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=False)

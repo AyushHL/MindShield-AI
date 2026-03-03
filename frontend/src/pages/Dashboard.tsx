@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
@@ -55,18 +55,32 @@ const RISK_CONFIG = [
   },
 ];
 
-const statCards = [
-  { label: 'Total Analyses', value: '—', icon: Activity },
-  { label: 'High Risk Flags', value: '—', icon: ShieldX },
-  { label: 'Model Accuracy', value: '~91%', icon: TrendingUp },
-  { label: 'Avg. Latency', value: '<1s', icon: Brain },
-];
-
 export const Dashboard = () => {
   const [text, setText] = useState('');
   const [result, setResult] = useState<Prediction | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  /* Live stats */
+  const [totalAnalyses, setTotalAnalyses] = useState<string | number>('—');
+  const [highRiskFlags, setHighRiskFlags] = useState<string | number>('—');
+
+  const refreshStats = async () => {
+    try {
+      const r = await api.get('/reports/stats');
+      setTotalAnalyses(r.data.total);
+      setHighRiskFlags(r.data.highRisk);
+    } catch { /* silent – model service may not be running */ }
+  };
+
+  useEffect(() => { refreshStats(); }, []);
+
+  const statCards = [
+    { label: 'Total Analyses', value: totalAnalyses, icon: Activity },
+    { label: 'High Risk Flags', value: highRiskFlags, icon: ShieldX },
+    { label: 'Model Accuracy', value: '~91%', icon: TrendingUp },
+    { label: 'Avg. Latency', value: '<1s', icon: Brain },
+  ];
 
   const handlePredict = async () => {
     if (!text.trim()) return;
@@ -76,6 +90,7 @@ export const Dashboard = () => {
     try {
       const response = await api.post('/ml/predict', { text });
       setResult(response.data);
+      refreshStats();
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to analyse text. Is the model service running?');
     } finally {

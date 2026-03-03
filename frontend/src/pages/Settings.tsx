@@ -38,28 +38,28 @@ export const Settings = () => {
     setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 4000);
   };
 
-  // ── Profile state ───────────────────────────────────────────────
+  // Profile state
   const stored = JSON.parse(localStorage.getItem('user') || '{}');
   const [profile,        setProfile]        = useState({ username: stored.username || '', email: stored.email || '' });
   const [profileLoading, setProfileLoading] = useState(false);
   const [joinedAt,       setJoinedAt]       = useState<string | null>(null);
 
-  // ── Avatar state ────────────────────────────────────────────────
+  // Avatar state
   const [avatar,        setAvatar]        = useState<string | null>(stored.avatar ?? null);
   const [avatarLoading, setAvatarLoading] = useState(false);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
 
-  // ── Password state ──────────────────────────────────────────────
+  // Password state
   const [pwd,        setPwd]        = useState({ current: '', newPwd: '', confirm: '' });
   const [showPwd,    setShowPwd]    = useState({ current: false, newPwd: false, confirm: false });
   const [pwdLoading, setPwdLoading] = useState(false);
 
-  // ── Delete state ────────────────────────────────────────────────
+  // Delete state
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [deletePassword,    setDeletePassword]    = useState('');
   const [deleteLoading,     setDeleteLoading]     = useState(false);
 
-  // ── Fetch profile on mount ──────────────────────────────────────
+  // Fetch profile on mount
   useEffect(() => {
     api.get('/auth/profile')
       .then(r => {
@@ -74,7 +74,7 @@ export const Settings = () => {
       .catch(() => {/* silently use cached */});
   }, []);
 
-  // ── Avatar: pick file → local preview ──────────────────────────
+  // Avatar: pick file → local preview
   const handleFilePick = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -86,7 +86,7 @@ export const Settings = () => {
     reader.readAsDataURL(file);
   };
 
-  // ── Avatar: upload ──────────────────────────────────────────────
+  // Avatar: upload
   const handleAvatarUpload = async () => {
     const file = fileRef.current?.files?.[0];
     if (!file) { addToast('warning', 'Pick an image first.'); return; }
@@ -107,7 +107,7 @@ export const Settings = () => {
     } finally { setAvatarLoading(false); }
   };
 
-  // ── Avatar: delete ──────────────────────────────────────────────
+  // Avatar: delete
   const handleAvatarDelete = async () => {
     setAvatarLoading(true);
     try {
@@ -124,7 +124,7 @@ export const Settings = () => {
     } finally { setAvatarLoading(false); }
   };
 
-  // ── Profile save ────────────────────────────────────────────────
+  // Profile save
   const handleProfileSave = async () => {
     if (!profile.username.trim() || !profile.email.trim()) {
       addToast('error', 'Username and email cannot be empty.'); return;
@@ -141,7 +141,7 @@ export const Settings = () => {
     } finally { setProfileLoading(false); }
   };
 
-  // ── Password change ─────────────────────────────────────────────
+  // Password change
   const handlePasswordChange = async () => {
     if (!pwd.current || !pwd.newPwd || !pwd.confirm) {
       addToast('error', 'All password fields are required.'); return;
@@ -158,7 +158,7 @@ export const Settings = () => {
     } finally { setPwdLoading(false); }
   };
 
-  // ── Delete account ──────────────────────────────────────────────
+  // Delete account
   const handleDeleteAccount = async () => {
     if (deleteConfirmText !== 'DELETE') { addToast('warning', 'Type DELETE exactly to confirm.'); return; }
     if (!deletePassword) { addToast('error', 'Enter your password to confirm deletion.'); return; }
@@ -174,7 +174,7 @@ export const Settings = () => {
     }
   };
 
-  // ── Derived ─────────────────────────────────────────────────────
+  // Derived
   const displayAvatar = avatarPreview ?? avatar;
   const initial = (profile.username?.[0] || '?').toUpperCase();
 
@@ -208,7 +208,7 @@ export const Settings = () => {
           <p className="mt-1 text-sm text-slate-400">Manage your account profile, security, and preferences.</p>
         </div>
 
-        {/* ── Account overview ──────────────────────────────────── */}
+        {/* Account overview */}
         <Card className="p-5">
           <div className="flex items-center gap-4">
             {/* Clickable avatar */}
@@ -249,7 +249,7 @@ export const Settings = () => {
           </div>
         </Card>
 
-        {/* ── Profile photo section ─────────────────────────────── */}
+        {/* Profile photo section */}
         <Card className="overflow-hidden">
           <div className="flex items-center gap-3 border-b border-slate-800 px-5 py-4">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-violet-500/10">
@@ -306,7 +306,7 @@ export const Settings = () => {
           </div>
         </Card>
 
-        {/* ── Profile section ───────────────────────────────────── */}
+        {/* Profile section */}
         <Card className="overflow-hidden">
           <div className="flex items-center gap-3 border-b border-slate-800 px-5 py-4">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-violet-500/10">
@@ -342,7 +342,7 @@ export const Settings = () => {
           </div>
         </Card>
 
-        {/* ── Security section ──────────────────────────────────── */}
+        {/* Security section */}
         <Card className="overflow-hidden">
           <div className="flex items-center gap-3 border-b border-slate-800 px-5 py-4">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-cyan-500/10">
@@ -386,7 +386,7 @@ export const Settings = () => {
           </div>
         </Card>
 
-        {/* ── Danger zone ───────────────────────────────────────── */}
+        {/* Danger zone */}
         <Card className="overflow-hidden border-red-500/20">
           <div className="flex items-center gap-3 border-b border-red-500/15 bg-red-500/5 px-5 py-4">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-500/10">
