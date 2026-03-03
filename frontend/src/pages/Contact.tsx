@@ -14,7 +14,7 @@ const faqs = [
 ];
 
 const contactInfo = [
-  { icon: Mail, label: 'Email', value: 'support@mindshield.ai' },
+  { icon: Mail, label: 'Email', value: 'MindShield.AI@gmail.com' },
   { icon: Phone, label: 'Phone', value: '+91 XXXXX XXXXX' },
   { icon: MapPin, label: 'Location', value: 'Delhi Technological University, Delhi, India' },
 ];
