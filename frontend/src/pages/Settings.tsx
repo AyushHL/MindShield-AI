@@ -370,7 +370,7 @@ export const Settings = () => {
                   <button
                     type="button"
                     onClick={() => setShowPwd(p => ({ ...p, [field]: !p[field] }))}
-                    className="absolute right-3 top-[34px] text-slate-500 hover:text-slate-300 transition-colors"
+                    className="absolute right-3 top-[26px] flex h-10 items-center text-slate-500 hover:text-slate-300 transition-colors"
                   >
                     {showPwd[field] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
@@ -421,7 +421,7 @@ export const Settings = () => {
               <button
                 type="button"
                 onClick={() => setShowPwd(p => ({ ...p, confirm: !p.confirm }))}
-                className="absolute right-3 top-[34px] text-slate-500 hover:text-slate-300 transition-colors"
+                className="absolute right-3 top-[26px] flex h-10 items-center text-slate-500 hover:text-slate-300 transition-colors"
               >
                 {showPwd.confirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
