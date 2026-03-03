@@ -64,13 +64,20 @@ export const Dashboard = () => {
   /* Live stats */
   const [totalAnalyses, setTotalAnalyses] = useState<string | number>('—');
   const [highRiskFlags, setHighRiskFlags] = useState<string | number>('—');
+  const [statsLoading, setStatsLoading] = useState(true);
 
   const refreshStats = async () => {
+    setStatsLoading(true);
     try {
       const r = await api.get('/reports/stats');
-      setTotalAnalyses(r.data.total);
-      setHighRiskFlags(r.data.highRisk);
-    } catch { /* silent – model service may not be running */ }
+      setTotalAnalyses(r.data.total ?? 0);
+      setHighRiskFlags(r.data.highRisk ?? 0);
+    } catch {
+      setTotalAnalyses(0);
+      setHighRiskFlags(0);
+    } finally {
+      setStatsLoading(false);
+    }
   };
 
   useEffect(() => { refreshStats(); }, []);
@@ -118,7 +125,11 @@ export const Dashboard = () => {
                 <Icon className="h-4 w-4 text-violet-400" />
               </div>
             </div>
-            <p className="text-2xl font-bold text-white">{value}</p>
+            {statsLoading && (label === 'Total Analyses' || label === 'High Risk Flags') ? (
+              <div className="h-8 w-16 rounded-md bg-slate-800 animate-pulse" />
+            ) : (
+              <p className="text-2xl font-bold text-white">{value}</p>
+            )}
           </Card>
         ))}
       </div>

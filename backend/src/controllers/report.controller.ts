@@ -89,3 +89,65 @@ export const deleteAllReports = async (req: AuthRequest, res: Response, next: Ne
     next(error);
   }
 };
+
+// GET /api/reports/insights — aggregated analytics for the logged-in user
+export const getInsights = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user.userId;
+
+    const reports = await Report.find({ userId })
+      .select('classId riskScore confidence createdAt source')
+      .lean();
+
+    // Risk distribution
+    const distribution = { no_risk: 0, potential_risk: 0, high_risk: 0 };
+    reports.forEach(r => {
+      if (r.classId === 0) distribution.no_risk++;
+      else if (r.classId === 1) distribution.potential_risk++;
+      else distribution.high_risk++;
+    });
+
+    // Analyses per day — last 14 days
+    const now = new Date();
+    const timeline: { date: string; count: number; highRisk: number }[] = [];
+    for (let i = 13; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      timeline.push({ date: d.toISOString().split('T')[0], count: 0, highRisk: 0 });
+    }
+    reports.forEach(r => {
+      const dateStr = new Date(r.createdAt).toISOString().split('T')[0];
+      const day = timeline.find(d => d.date === dateStr);
+      if (day) { day.count++; if (r.classId === 2) day.highRisk++; }
+    });
+
+    // Per-class stats
+    const classStats = [0, 1, 2].map(classId => {
+      const filtered = reports.filter(r => r.classId === classId);
+      const avgConf = filtered.length
+        ? filtered.reduce((s, r) => s + r.confidence, 0) / filtered.length : 0;
+      const avgRisk = filtered.length
+        ? filtered.reduce((s, r) => s + r.riskScore, 0) / filtered.length : 0;
+      return {
+        classId,
+        count: filtered.length,
+        avgConfidence: Math.round(avgConf * 1000) / 10,
+        avgRiskScore: Math.round(avgRisk),
+      };
+    });
+
+    // Source breakdown
+    const textCount = reports.filter(r => r.source === 'text').length;
+    const fileCount = reports.filter(r => r.source === 'file').length;
+
+    res.json({
+      total: reports.length,
+      distribution,
+      timeline,
+      classStats,
+      sourceBreakdown: { text: textCount, file: fileCount },
+    });
+  } catch (error) {
+    next(error);
+  }
+};

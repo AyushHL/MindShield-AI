@@ -5,6 +5,7 @@ import {
   getReport,
   deleteReport,
   deleteAllReports,
+  getInsights,
 } from '../controllers/report.controller';
 import { authenticateToken } from '../middleware/auth.middleware';
 
@@ -13,6 +14,7 @@ const router = Router();
 router.use(authenticateToken);
 
 router.get('/stats', getReportStats);
+router.get('/insights', getInsights);
 router.get('/', listReports);
 router.get('/:id', getReport);
 router.delete('/', deleteAllReports);

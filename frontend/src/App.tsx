@@ -4,6 +4,7 @@ import { Dashboard } from './pages/Dashboard';
 import { Reports } from './pages/Reports';
 import { Contact } from './pages/Contact';
 import { Settings } from './pages/Settings';
+import { AIInsights } from './pages/AIInsights';
 import { DashboardLayout } from './components/layout/DashboardLayout';
 
 export default function App() {
@@ -18,7 +19,7 @@ export default function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/dashboard/contact" element={<Contact />} />
           <Route path="/dashboard/reports" element={<Reports />} />
-          <Route path="/dashboard/insights" element={<Dashboard />} />
+          <Route path="/dashboard/insights" element={<AIInsights />} />
           <Route path="/dashboard/users" element={<Dashboard />} />
           <Route path="/dashboard/settings" element={<Settings />} />
         </Route>
