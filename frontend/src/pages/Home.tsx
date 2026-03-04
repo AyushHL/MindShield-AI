@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Shield, Brain, Activity, Lock, ArrowRight, Zap, Users, BarChart3, CheckCircle2 } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { PublicNavbar } from '../components/layout/Navbar';
 import { AuthModal } from '../components/AuthModal';
 
@@ -11,7 +12,13 @@ export const Home = () => {
   const openLogin  = () => { setAuthMode('login');  setAuthOpen(true); };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
+    <motion.div
+      className="min-h-screen bg-slate-950 text-white"
+      initial={{ opacity: 0, y: 18 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -12 }}
+      transition={{ duration: 0.28, ease: 'easeOut' }}
+    >
       <PublicNavbar onLoginClick={openLogin} onSignupClick={openSignup} />
       {authOpen && <AuthModal isOpen={authOpen} defaultTab={authMode} onClose={() => setAuthOpen(false)} />}
       
@@ -133,6 +140,6 @@ export const Home = () => {
           <p>© {new Date().getFullYear()} MindShield. All rights reserved.</p>
         </div>
       </footer>
-    </div>
+    </motion.div>
   );
 };
