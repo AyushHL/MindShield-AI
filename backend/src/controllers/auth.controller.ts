@@ -2,12 +2,33 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import User from '../models/User';
 
+const validatePassword = (password: string): string | null => {
+  if (!password || password.length < 8)       return 'Password must be at least 8 characters long';
+  if (password.length > 64)                   return 'Password must not exceed 64 characters';
+  if (!/[A-Z]/.test(password))                return 'Password must contain at least one uppercase letter';
+  if (!/[a-z]/.test(password))                return 'Password must contain at least one lowercase letter';
+  if (!/[0-9]/.test(password))                return 'Password must contain at least one number';
+  if (!/[@#$%&*!^()_\-+=[\]{};:'",.<>?/\\|`~]/.test(password))
+                                               return 'Password must contain at least one special character';
+  if (/\s/.test(password))                    return 'Password must not contain spaces';
+  return null;
+};
+
 export const register = async (req: Request, res: Response, next: NextFunction) => {  
   try {
     const { username, email, password } = req.body;
-    const existingUser = await User.findOne({ email });
+
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      return res.status(400).json({ message: passwordError });
+    }
+
+    const existingUser = await User.findOne({ $or: [{ email }, { username }] });
     if (existingUser) {
-      return res.status(400).json({ message: 'User already exists' });
+      if (existingUser.email === email) {
+        return res.status(400).json({ message: 'An account with this email already exists' });
+      }
+      return res.status(400).json({ message: 'This username is already taken' });
     }
 
     const newUser = new User({ username, email, passwordHash: password });
@@ -96,14 +117,17 @@ export const updateProfile = async (req: Request & { user?: any }, res: Response
 export const changePassword = async (req: Request & { user?: any }, res: Response, next: NextFunction) => {
   try {
     const { currentPassword, newPassword } = req.body;
-    if (!newPassword || newPassword.length < 6)
-      return res.status(400).json({ message: 'New password must be at least 6 characters' });
+    const passwordError = validatePassword(newPassword);
+    if (passwordError) return res.status(400).json({ message: passwordError });
 
     const user = await User.findById(req.user.userId);
     if (!user) return res.status(404).json({ message: 'User not found' });
 
     const valid = await user.comparePassword(currentPassword);
     if (!valid) return res.status(401).json({ message: 'Current password is incorrect' });
+
+    const sameAsOld = await user.comparePassword(newPassword);
+    if (sameAsOld) return res.status(400).json({ message: 'New password must be different from your current password' });
 
     user.passwordHash = newPassword;
     await user.save();

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import {
   User, Lock, Trash2, ShieldCheck, Save, Eye, EyeOff,
   CheckCircle2, AlertTriangle, XCircle, Calendar, Mail,
@@ -49,10 +49,30 @@ export const Settings = () => {
   const [avatarLoading, setAvatarLoading] = useState(false);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
 
+  // Password rules (same as Register)
+  const PASSWORD_RULES = [
+    { label: 'At least 8 characters',         test: (pw: string) => pw.length >= 8 },
+    { label: 'No more than 64 characters',     test: (pw: string) => pw.length <= 64 },
+    { label: 'At least one uppercase letter',  test: (pw: string) => /[A-Z]/.test(pw) },
+    { label: 'At least one lowercase letter',  test: (pw: string) => /[a-z]/.test(pw) },
+    { label: 'At least one number',            test: (pw: string) => /[0-9]/.test(pw) },
+    { label: 'At least one special character', test: (pw: string) => /[@#$%&*!^()_\-+=[\]{};:'",.<>?/\\|`~]/.test(pw) },
+    { label: 'No spaces',                      test: (pw: string) => !/\s/.test(pw) },
+  ];
+
   // Password state
-  const [pwd,        setPwd]        = useState({ current: '', newPwd: '', confirm: '' });
-  const [showPwd,    setShowPwd]    = useState({ current: false, newPwd: false, confirm: false });
-  const [pwdLoading, setPwdLoading] = useState(false);
+  const [pwd,           setPwd]           = useState({ current: '', newPwd: '', confirm: '' });
+  const [showPwd,       setShowPwd]       = useState({ current: false, newPwd: false, confirm: false });
+  const [pwdLoading,    setPwdLoading]    = useState(false);
+  const [pwdNewTouched, setPwdNewTouched] = useState(false);
+  const [pwdConfirmTouched, setPwdConfirmTouched] = useState(false);
+
+  const pwdRuleResults = useMemo(
+    () => PASSWORD_RULES.map(rule => ({ ...rule, passed: rule.test(pwd.newPwd) })),
+    [pwd.newPwd]
+  );
+  const allPwdRulesPassed = pwdRuleResults.every(r => r.passed);
+  const pwdMismatch = pwdConfirmTouched && pwd.confirm.length > 0 && pwd.newPwd !== pwd.confirm;
 
   // Delete state
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
@@ -143,11 +163,16 @@ export const Settings = () => {
 
   // Password change
   const handlePasswordChange = async () => {
+    setPwdNewTouched(true);
+    setPwdConfirmTouched(true);
     if (!pwd.current || !pwd.newPwd || !pwd.confirm) {
       addToast('error', 'All password fields are required.'); return;
     }
+    if (!allPwdRulesPassed) {
+      addToast('error', 'New password does not meet all requirements'); return;
+    }
+    if (pwd.newPwd === pwd.current) { addToast('error', 'New password must be different from your current password'); return; }
     if (pwd.newPwd !== pwd.confirm) { addToast('error', 'New passwords do not match.'); return; }
-    if (pwd.newPwd.length < 6) { addToast('error', 'New password must be at least 6 characters.'); return; }
     setPwdLoading(true);
     try {
       await api.put('/auth/password', { currentPassword: pwd.current, newPassword: pwd.newPwd });
@@ -354,29 +379,76 @@ export const Settings = () => {
             </div>
           </div>
           <div className="space-y-4 p-5">
-            {(['current', 'newPwd', 'confirm'] as const).map((field) => {
-              const labels = { current: 'Current password', newPwd: 'New password', confirm: 'Confirm new password' };
-              return (
-                <div key={field} className="relative">
-                  <Input
-                    label={labels[field]}
-                    type={showPwd[field] ? 'text' : 'password'}
-                    value={pwd[field]}
-                    onChange={e => setPwd(p => ({ ...p, [field]: e.target.value }))}
-                    placeholder="••••••••"
-                    autoComplete={field === 'current' ? 'current-password' : 'new-password'}
-                    className="pr-10"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPwd(p => ({ ...p, [field]: !p[field] }))}
-                    className="absolute right-3 top-[26px] flex h-10 items-center text-slate-500 hover:text-slate-300 transition-colors"
-                  >
-                    {showPwd[field] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
+            {/* Current password */}
+            <div className="relative">
+              <Input
+                label="Current password"
+                type={showPwd.current ? 'text' : 'password'}
+                value={pwd.current}
+                onChange={e => setPwd(p => ({ ...p, current: e.target.value }))}
+                placeholder="••••••••"
+                autoComplete="current-password"
+                className="pr-10"
+              />
+              <button type="button" onClick={() => setShowPwd(p => ({ ...p, current: !p.current }))}
+                className="absolute right-3 top-[26px] flex h-10 items-center text-slate-500 hover:text-slate-300 transition-colors">
+                {showPwd.current ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+
+            {/* New password + live rules */}
+            <div>
+              <div className="relative">
+                <Input
+                  label="New password"
+                  type={showPwd.newPwd ? 'text' : 'password'}
+                  value={pwd.newPwd}
+                  onChange={e => { setPwd(p => ({ ...p, newPwd: e.target.value })); setPwdNewTouched(true); }}
+                  placeholder="••••••••"
+                  autoComplete="new-password"
+                  className="pr-10"
+                />
+                <button type="button" onClick={() => setShowPwd(p => ({ ...p, newPwd: !p.newPwd }))}
+                  className="absolute right-3 top-[26px] flex h-10 items-center text-slate-500 hover:text-slate-300 transition-colors">
+                  {showPwd.newPwd ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+              {pwdNewTouched && pwd.newPwd.length > 0 && (
+                <ul className="mt-2 space-y-1 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2">
+                  {pwdRuleResults.map(rule => (
+                    <li key={rule.label} className="flex items-center gap-2 text-xs">
+                      <span className={rule.passed ? 'text-emerald-400' : 'text-red-400'}>{rule.passed ? '✓' : '✗'}</span>
+                      <span className={rule.passed ? 'text-emerald-400' : 'text-slate-400'}>{rule.label}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            {/* Confirm new password + live mismatch popup */}
+            <div className="relative">
+              <Input
+                label="Confirm new password"
+                type={showPwd.confirm ? 'text' : 'password'}
+                value={pwd.confirm}
+                onChange={e => { setPwd(p => ({ ...p, confirm: e.target.value })); setPwdConfirmTouched(true); }}
+                placeholder="••••••••"
+                autoComplete="new-password"
+                className="pr-10"
+                error={pwdMismatch ? ' ' : undefined}
+              />
+              <button type="button" onClick={() => setShowPwd(p => ({ ...p, confirm: !p.confirm }))}
+                className="absolute right-3 top-[26px] flex h-10 items-center text-slate-500 hover:text-slate-300 transition-colors">
+                {showPwd.confirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+              {pwdMismatch && (
+                <div className="absolute left-1/2 top-full z-50 mt-2 -translate-x-1/2 whitespace-nowrap rounded-lg border border-red-500/40 bg-slate-900 px-3 py-2 text-xs text-red-400 shadow-lg">
+                  <span className="mr-1">⚠</span> Passwords do not match
+                  <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 border-4 border-transparent border-b-red-500/40" />
                 </div>
-              );
-            })}
+              )}
+            </div>
+
             <div className="flex justify-end pt-1">
               <Button onClick={handlePasswordChange} isLoading={pwdLoading} size="sm">
                 <Lock className="h-4 w-4" />
