@@ -1,17 +1,17 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
-  LayoutDashboard, FileText, BrainCircuit, Users,
+  LayoutDashboard, FileText, BrainCircuit, AlertTriangle,
   Settings, Mail, LogOut, Shield, ChevronLeft, ChevronRight,
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
 const navItems = [
-  { to: '/dashboard',          icon: LayoutDashboard, label: 'Dashboard'   },
-  { to: '/dashboard/reports',  icon: FileText,         label: 'Reports'     },
-  { to: '/dashboard/insights', icon: BrainCircuit,     label: 'AI Insights' },
-  { to: '/dashboard/users',    icon: Users,            label: 'Users'       },
-  { to: '/dashboard/settings', icon: Settings,         label: 'Settings'    },
+  { to: '/dashboard',                   icon: LayoutDashboard, label: 'Dashboard'        },
+  { to: '/dashboard/reports',           icon: FileText,        label: 'Reports'          },
+  { to: '/dashboard/insights',          icon: BrainCircuit,    label: 'AI Insights'      },
+  { to: '/dashboard/crisis-protocols',  icon: AlertTriangle,   label: 'Crisis Protocols' },
+  { to: '/dashboard/settings',          icon: Settings,        label: 'Settings'         },
 ];
 
 const bottomItems = [
