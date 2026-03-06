@@ -4,7 +4,8 @@ import bcrypt from 'bcryptjs';
 export interface IUser extends Document {
   username: string;
   email: string;
-  passwordHash: string;
+  passwordHash?: string | null;
+  googleId?: string | null;
   avatar?: string;
   createdAt: Date;
   comparePassword(password: string): Promise<boolean>;
@@ -13,13 +14,14 @@ export interface IUser extends Document {
 const UserSchema: Schema = new Schema({
   username: { type: String, required: true, unique: true },
   email: { type: String, required: true, unique: true },
-  passwordHash: { type: String, required: true },
+  passwordHash: { type: String, default: null },
+  googleId: { type: String, default: null, sparse: true },
   avatar: { type: String, default: null },
   createdAt: { type: Date, default: Date.now }
 });
 
 UserSchema.pre<IUser>('save', async function (next) {
-  if (!this.isModified('passwordHash')) return next();
+  if (!this.isModified('passwordHash') || !this.passwordHash) return next();
   try {
     const salt = await bcrypt.genSalt(10);
     this.passwordHash = await bcrypt.hash(this.passwordHash, salt);
@@ -30,6 +32,7 @@ UserSchema.pre<IUser>('save', async function (next) {
 });
 
 UserSchema.methods.comparePassword = async function (password: string): Promise<boolean> {
+  if (!this.passwordHash) return false;
   return bcrypt.compare(password, this.passwordHash);
 };
 

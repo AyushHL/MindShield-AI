@@ -1,6 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
+import { OAuth2Client } from 'google-auth-library';
 import User from '../models/User';
+
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const validatePassword = (password: string): string | null => {
   if (!password || password.length < 8)       return 'Password must be at least 8 characters long';
@@ -44,12 +47,51 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
-    if (!user || !(await user.comparePassword(password))) {
+    if (!user) return res.status(401).json({ message: 'Invalid credentials' });
+
+    if (!user.passwordHash) {
+      return res.status(400).json({ message: 'This account uses Google sign-in. Please use the Google button to log in.' });
+    }
+
+    if (!(await user.comparePassword(password))) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET || 'secret', { expiresIn: '1h' });
-    res.json({ token, user: { id: user._id, username: user.username, email: user.email } });
+    res.json({ token, user: { id: user._id, username: user.username, email: user.email, hasPassword: true } });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const googleLogin = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { credential } = req.body;
+    if (!credential) return res.status(400).json({ message: 'No credential provided' });
+
+    const ticket = await googleClient.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
+    if (!payload || !payload.email) return res.status(400).json({ message: 'Invalid Google token' });
+
+    const { email, name, sub: googleId } = payload;
+    let user = await User.findOne({ $or: [{ googleId }, { email }] });
+
+    if (!user) {
+      let username = (name || email.split('@')[0]).replace(/\s+/g, '_').toLowerCase();
+      const taken = await User.findOne({ username });
+      if (taken) username = `${username}_${Date.now()}`;
+      user = new User({ username, email, googleId, passwordHash: null });
+      await user.save();
+    } else if (!user.googleId) {
+      user.googleId = googleId;
+      await user.save();
+    }
+
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET || 'secret', { expiresIn: '1h' });
+    res.json({ token, user: { id: user._id, username: user.username, email: user.email, hasPassword: !!user.passwordHash } });
   } catch (error) {
     next(error);
   }
@@ -57,9 +99,9 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
 
 export const getProfile = async (req: Request & { user?: any }, res: Response, next: NextFunction) => {
   try {
-    const user = await User.findById(req.user.userId).select('-passwordHash');
+    const user = await User.findById(req.user.userId);
     if (!user) return res.status(404).json({ message: 'User not found' });
-    res.json({ id: user._id, username: user.username, email: user.email, avatar: user.avatar ?? null, createdAt: user.createdAt });
+    res.json({ id: user._id, username: user.username, email: user.email, avatar: user.avatar ?? null, createdAt: user.createdAt, hasPassword: !!user.passwordHash });
   } catch (error) {
     next(error);
   }
@@ -123,6 +165,8 @@ export const changePassword = async (req: Request & { user?: any }, res: Respons
     const user = await User.findById(req.user.userId);
     if (!user) return res.status(404).json({ message: 'User not found' });
 
+    if (!user.passwordHash) return res.status(400).json({ message: 'No password set. Use Set Password to create one first.' });
+
     const valid = await user.comparePassword(currentPassword);
     if (!valid) return res.status(401).json({ message: 'Current password is incorrect' });
 
@@ -132,6 +176,24 @@ export const changePassword = async (req: Request & { user?: any }, res: Respons
     user.passwordHash = newPassword;
     await user.save();
     res.json({ message: 'Password changed successfully' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const setPassword = async (req: Request & { user?: any }, res: Response, next: NextFunction) => {
+  try {
+    const { newPassword } = req.body;
+    const user = await User.findById(req.user.userId);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    if (user.passwordHash) return res.status(400).json({ message: 'Account already has a password. Use Change Password instead.' });
+
+    const passwordError = validatePassword(newPassword);
+    if (passwordError) return res.status(400).json({ message: passwordError });
+
+    user.passwordHash = newPassword;
+    await user.save();
+    res.json({ message: 'Password set successfully' });
   } catch (error) {
     next(error);
   }

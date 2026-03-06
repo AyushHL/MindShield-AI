@@ -79,12 +79,16 @@ export const Settings = () => {
   const [deletePassword,    setDeletePassword]    = useState('');
   const [deleteLoading,     setDeleteLoading]     = useState(false);
 
+  // Google / password-less state
+  const [hasPassword, setHasPassword] = useState<boolean | null>(null);
+
   // Fetch profile on mount
   useEffect(() => {
     api.get('/auth/profile')
       .then(r => {
         setProfile({ username: r.data.username, email: r.data.email });
         setAvatar(r.data.avatar ?? null);
+        setHasPassword(!!r.data.hasPassword);
         if (r.data.createdAt) {
           setJoinedAt(new Date(r.data.createdAt).toLocaleDateString('en-IN', {
             year: 'numeric', month: 'long', day: 'numeric',
@@ -180,6 +184,30 @@ export const Settings = () => {
       addToast('success', 'Password changed successfully.');
     } catch (e: any) {
       addToast('error', e?.response?.data?.message || 'Failed to change password.');
+    } finally { setPwdLoading(false); }
+  };
+
+  // Set password (Google-only users)
+  const handleSetPassword = async () => {
+    setPwdNewTouched(true);
+    setPwdConfirmTouched(true);
+    if (!pwd.newPwd || !pwd.confirm) {
+      addToast('error', 'All password fields are required.'); return;
+    }
+    if (!allPwdRulesPassed) {
+      addToast('error', 'Password does not meet all requirements'); return;
+    }
+    if (pwd.newPwd !== pwd.confirm) { addToast('error', 'Passwords do not match.'); return; }
+    setPwdLoading(true);
+    try {
+      await api.post('/auth/set-password', { newPassword: pwd.newPwd });
+      setPwd({ current: '', newPwd: '', confirm: '' });
+      setPwdNewTouched(false);
+      setPwdConfirmTouched(false);
+      setHasPassword(true);
+      addToast('success', 'Password set successfully. You can now sign in with your password.');
+    } catch (e: any) {
+      addToast('error', e?.response?.data?.message || 'Failed to set password.');
     } finally { setPwdLoading(false); }
   };
 
@@ -374,87 +402,163 @@ export const Settings = () => {
               <Lock className="h-4 w-4 text-cyan-400" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-white">Security</p>
-              <p className="text-xs text-slate-500">Change your password</p>
+              <p className="text-sm font-semibold text-white">
+                {hasPassword === false ? 'Set a Password' : 'Security'}
+              </p>
+              <p className="text-xs text-slate-500">
+                {hasPassword === false ? 'Create a password so you can also sign in with email' : 'Change your password'}
+              </p>
             </div>
           </div>
           <div className="space-y-4 p-5">
-            {/* Current password */}
-            <div className="relative">
-              <Input
-                label="Current password"
-                type={showPwd.current ? 'text' : 'password'}
-                value={pwd.current}
-                onChange={e => setPwd(p => ({ ...p, current: e.target.value }))}
-                placeholder="••••••••"
-                autoComplete="current-password"
-                className="pr-10"
-              />
-              <button type="button" onClick={() => setShowPwd(p => ({ ...p, current: !p.current }))}
-                className="absolute right-3 top-[26px] flex h-10 items-center text-slate-500 hover:text-slate-300 transition-colors">
-                {showPwd.current ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </button>
-            </div>
-
-            {/* New password + live rules */}
-            <div>
-              <div className="relative">
-                <Input
-                  label="New password"
-                  type={showPwd.newPwd ? 'text' : 'password'}
-                  value={pwd.newPwd}
-                  onChange={e => { setPwd(p => ({ ...p, newPwd: e.target.value })); setPwdNewTouched(true); }}
-                  placeholder="••••••••"
-                  autoComplete="new-password"
-                  className="pr-10"
-                />
-                <button type="button" onClick={() => setShowPwd(p => ({ ...p, newPwd: !p.newPwd }))}
-                  className="absolute right-3 top-[26px] flex h-10 items-center text-slate-500 hover:text-slate-300 transition-colors">
-                  {showPwd.newPwd ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
-              </div>
-              {pwdNewTouched && pwd.newPwd.length > 0 && (
-                <ul className="mt-2 space-y-1 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2">
-                  {pwdRuleResults.map(rule => (
-                    <li key={rule.label} className="flex items-center gap-2 text-xs">
-                      <span className={rule.passed ? 'text-emerald-400' : 'text-red-400'}>{rule.passed ? '✓' : '✗'}</span>
-                      <span className={rule.passed ? 'text-emerald-400' : 'text-slate-400'}>{rule.label}</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-
-            {/* Confirm new password + live mismatch popup */}
-            <div className="relative">
-              <Input
-                label="Confirm new password"
-                type={showPwd.confirm ? 'text' : 'password'}
-                value={pwd.confirm}
-                onChange={e => { setPwd(p => ({ ...p, confirm: e.target.value })); setPwdConfirmTouched(true); }}
-                placeholder="••••••••"
-                autoComplete="new-password"
-                className="pr-10"
-                error={pwdMismatch ? ' ' : undefined}
-              />
-              <button type="button" onClick={() => setShowPwd(p => ({ ...p, confirm: !p.confirm }))}
-                className="absolute right-3 top-[26px] flex h-10 items-center text-slate-500 hover:text-slate-300 transition-colors">
-                {showPwd.confirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </button>
-              {pwdMismatch && (
-                <div className="absolute left-1/2 top-full z-50 mt-2 -translate-x-1/2 whitespace-nowrap rounded-lg border border-red-500/40 bg-slate-900 px-3 py-2 text-xs text-red-400 shadow-lg">
-                  <span className="mr-1">⚠</span> Passwords do not match
-                  <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 border-4 border-transparent border-b-red-500/40" />
+            {hasPassword === null ? (
+              <div className="py-4 text-center text-slate-500 text-sm">Loading...</div>
+            ) : hasPassword ? (
+              <>
+                {/* Current password */}
+                <div className="relative">
+                  <Input
+                    label="Current password"
+                    type={showPwd.current ? 'text' : 'password'}
+                    value={pwd.current}
+                    onChange={e => setPwd(p => ({ ...p, current: e.target.value }))}
+                    placeholder="••••••••"
+                    autoComplete="current-password"
+                    className="pr-10"
+                  />
+                  <button type="button" onClick={() => setShowPwd(p => ({ ...p, current: !p.current }))}
+                    className="absolute right-3 top-[26px] flex h-10 items-center text-slate-500 hover:text-slate-300 transition-colors">
+                    {showPwd.current ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
                 </div>
-              )}
-            </div>
 
-            <div className="flex justify-end pt-1">
-              <Button onClick={handlePasswordChange} isLoading={pwdLoading} size="sm">
-                <Lock className="h-4 w-4" />
-                Change Password
-              </Button>
-            </div>
+                {/* New password + live rules */}
+                <div>
+                  <div className="relative">
+                    <Input
+                      label="New password"
+                      type={showPwd.newPwd ? 'text' : 'password'}
+                      value={pwd.newPwd}
+                      onChange={e => { setPwd(p => ({ ...p, newPwd: e.target.value })); setPwdNewTouched(true); }}
+                      placeholder="••••••••"
+                      autoComplete="new-password"
+                      className="pr-10"
+                    />
+                    <button type="button" onClick={() => setShowPwd(p => ({ ...p, newPwd: !p.newPwd }))}
+                      className="absolute right-3 top-[26px] flex h-10 items-center text-slate-500 hover:text-slate-300 transition-colors">
+                      {showPwd.newPwd ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                  {pwdNewTouched && pwd.newPwd.length > 0 && (
+                    <ul className="mt-2 space-y-1 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2">
+                      {pwdRuleResults.map(rule => (
+                        <li key={rule.label} className="flex items-center gap-2 text-xs">
+                          <span className={rule.passed ? 'text-emerald-400' : 'text-red-400'}>{rule.passed ? '✓' : '✗'}</span>
+                          <span className={rule.passed ? 'text-emerald-400' : 'text-slate-400'}>{rule.label}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+
+                {/* Confirm new password + live mismatch popup */}
+                <div className="relative">
+                  <Input
+                    label="Confirm new password"
+                    type={showPwd.confirm ? 'text' : 'password'}
+                    value={pwd.confirm}
+                    onChange={e => { setPwd(p => ({ ...p, confirm: e.target.value })); setPwdConfirmTouched(true); }}
+                    placeholder="••••••••"
+                    autoComplete="new-password"
+                    className="pr-10"
+                    error={pwdMismatch ? ' ' : undefined}
+                  />
+                  <button type="button" onClick={() => setShowPwd(p => ({ ...p, confirm: !p.confirm }))}
+                    className="absolute right-3 top-[26px] flex h-10 items-center text-slate-500 hover:text-slate-300 transition-colors">
+                    {showPwd.confirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                  {pwdMismatch && (
+                    <div className="absolute left-1/2 top-full z-50 mt-2 -translate-x-1/2 whitespace-nowrap rounded-lg border border-red-500/40 bg-slate-900 px-3 py-2 text-xs text-red-400 shadow-lg">
+                      <span className="mr-1">⚠</span> Passwords do not match
+                      <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 border-4 border-transparent border-b-red-500/40" />
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex justify-end pt-1">
+                  <Button onClick={handlePasswordChange} isLoading={pwdLoading} size="sm">
+                    <Lock className="h-4 w-4" />
+                    Change Password
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="rounded-xl border border-cyan-500/20 bg-cyan-500/5 p-4 text-sm text-slate-400">
+                  Your account was created with Google. Set a password to also be able to sign in with your email.
+                </div>
+
+                {/* New password + live rules */}
+                <div>
+                  <div className="relative">
+                    <Input
+                      label="New password"
+                      type={showPwd.newPwd ? 'text' : 'password'}
+                      value={pwd.newPwd}
+                      onChange={e => { setPwd(p => ({ ...p, newPwd: e.target.value })); setPwdNewTouched(true); }}
+                      placeholder="••••••••"
+                      autoComplete="new-password"
+                      className="pr-10"
+                    />
+                    <button type="button" onClick={() => setShowPwd(p => ({ ...p, newPwd: !p.newPwd }))}
+                      className="absolute right-3 top-[26px] flex h-10 items-center text-slate-500 hover:text-slate-300 transition-colors">
+                      {showPwd.newPwd ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                  {pwdNewTouched && pwd.newPwd.length > 0 && (
+                    <ul className="mt-2 space-y-1 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2">
+                      {pwdRuleResults.map(rule => (
+                        <li key={rule.label} className="flex items-center gap-2 text-xs">
+                          <span className={rule.passed ? 'text-emerald-400' : 'text-red-400'}>{rule.passed ? '✓' : '✗'}</span>
+                          <span className={rule.passed ? 'text-emerald-400' : 'text-slate-400'}>{rule.label}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+
+                {/* Confirm password */}
+                <div className="relative">
+                  <Input
+                    label="Confirm password"
+                    type={showPwd.confirm ? 'text' : 'password'}
+                    value={pwd.confirm}
+                    onChange={e => { setPwd(p => ({ ...p, confirm: e.target.value })); setPwdConfirmTouched(true); }}
+                    placeholder="••••••••"
+                    autoComplete="new-password"
+                    className="pr-10"
+                    error={pwdMismatch ? ' ' : undefined}
+                  />
+                  <button type="button" onClick={() => setShowPwd(p => ({ ...p, confirm: !p.confirm }))}
+                    className="absolute right-3 top-[26px] flex h-10 items-center text-slate-500 hover:text-slate-300 transition-colors">
+                    {showPwd.confirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                  {pwdMismatch && (
+                    <div className="absolute left-1/2 top-full z-50 mt-2 -translate-x-1/2 whitespace-nowrap rounded-lg border border-red-500/40 bg-slate-900 px-3 py-2 text-xs text-red-400 shadow-lg">
+                      <span className="mr-1">⚠</span> Passwords do not match
+                      <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 border-4 border-transparent border-b-red-500/40" />
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex justify-end pt-1">
+                  <Button onClick={handleSetPassword} isLoading={pwdLoading} size="sm">
+                    <Lock className="h-4 w-4" />
+                    Set Password
+                  </Button>
+                </div>
+              </>
+            )}
           </div>
         </Card>
 
@@ -473,6 +577,11 @@ export const Settings = () => {
             <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-4 text-sm text-slate-400">
               <p>This action <span className="text-red-400 font-medium">cannot be undone</span>. All your analyses, reports, and account data will be permanently erased.</p>
             </div>
+            {hasPassword === false && (
+              <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 text-sm text-amber-400">
+                <span className="font-medium">Set a password first</span> — account deletion requires a password. Go to the Security section above to set one.
+              </div>
+            )}
             <Input
               label='Type "DELETE" to confirm'
               value={deleteConfirmText}
@@ -503,7 +612,7 @@ export const Settings = () => {
                 variant="danger"
                 onClick={handleDeleteAccount}
                 isLoading={deleteLoading}
-                disabled={deleteConfirmText !== 'DELETE'}
+                disabled={deleteConfirmText !== 'DELETE' || hasPassword === false}
                 size="sm"
               >
                 <Trash2 className="h-4 w-4" />
