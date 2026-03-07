@@ -10,19 +10,20 @@ const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const validatePassword = (password: string): string | null => {
   if (!password || password.length < 8) return 'Password must be at least 8 characters long';
-  if (password.length > 64)             return 'Password must not exceed 64 characters';
-  if (!/[A-Z]/.test(password))          return 'Password must contain at least one uppercase letter';
-  if (!/[a-z]/.test(password))          return 'Password must contain at least one lowercase letter';
-  if (!/[0-9]/.test(password))          return 'Password must contain at least one number';
+  if (password.length > 64) return 'Password must not exceed 64 characters';
+  if (!/[A-Z]/.test(password)) return 'Password must contain at least one uppercase letter';
+  if (!/[a-z]/.test(password)) return 'Password must contain at least one lowercase letter';
+  if (!/[0-9]/.test(password)) return 'Password must contain at least one number';
   if (!/[@#$%&*!^()_\-+=[\]{};:'",.<>?/\\|`~]/.test(password))
-                                        return 'Password must contain at least one special character';
-  if (/\s/.test(password))              return 'Password must not contain spaces';
+    return 'Password must contain at least one special character';
+  if (/\s/.test(password)) return 'Password must not contain spaces';
   return null;
 };
 
-export const register = async (req: Request, res: Response, next: NextFunction) => {  
+export const register = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { username, email, password } = req.body;
+    const { username, email: rawEmail, password } = req.body;
+    const email = rawEmail?.toLowerCase().trim();
 
     const passwordError = validatePassword(password);
     if (passwordError) {
@@ -48,7 +49,8 @@ export const register = async (req: Request, res: Response, next: NextFunction) 
 
 export const login = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { email, password } = req.body;
+    const { email: rawEmail, password } = req.body;
+    const email = rawEmail?.toLowerCase().trim();
     const user = await User.findOne({ email });
     if (!user) return res.status(401).json({ message: 'Invalid credentials' });
 
@@ -226,11 +228,12 @@ const createMailTransporter = () =>
 
 export const forgotPassword = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { email } = req.body;
+    const { email: rawEmail } = req.body;
+    const email = rawEmail?.toLowerCase().trim();
     if (!email) return res.status(400).json({ message: 'Email is required' });
 
     const user = await User.findOne({ email });
-    
+
     if (!user) {
       return res.json({ message: 'If that email is registered, an OTP has been sent.' });
     }
@@ -286,7 +289,8 @@ export const forgotPassword = async (req: Request, res: Response, next: NextFunc
 
 export const resetPassword = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { email, otp, newPassword } = req.body;
+    const { email: rawEmail, otp, newPassword } = req.body;
+    const email = rawEmail?.toLowerCase().trim();
     if (!email || !otp || !newPassword)
       return res.status(400).json({ message: 'Email, OTP, and new password are required' });
 
@@ -302,6 +306,11 @@ export const resetPassword = async (req: Request, res: Response, next: NextFunct
 
     const passwordError = validatePassword(newPassword);
     if (passwordError) return res.status(400).json({ message: passwordError });
+
+    if (user.passwordHash) {
+      const sameAsOld = await user.comparePassword(newPassword);
+      if (sameAsOld) return res.status(400).json({ message: 'New password must be different from your current password' });
+    }
 
     user.passwordHash = newPassword;
     user.resetOtp = null;
