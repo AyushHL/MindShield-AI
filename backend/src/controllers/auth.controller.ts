@@ -313,3 +313,42 @@ export const resetPassword = async (req: Request, res: Response, next: NextFunct
     next(error);
   }
 };
+
+export const sendContactEmail = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { name, email, subject, message } = req.body;
+    if (!name || !email || !subject || !message)
+      return res.status(400).json({ message: 'All fields are required' });
+
+    const transporter = createMailTransporter();
+
+    try {
+      await transporter.verify();
+    } catch (verifyErr: any) {
+      return res.status(500).json({ message: `Mail server connection failed: ${verifyErr?.message}` });
+    }
+
+    await transporter.sendMail({
+      from: `"MindShield AI Support" <${process.env.EMAIL_USER}>`,
+      to: process.env.EMAIL_USER,
+      replyTo: `"${name}" <${email}>`,
+      subject: `[Contact Form] ${subject}`,
+      html: `
+        <div style="font-family:sans-serif;max-width:520px;margin:auto;background:#0f172a;color:#e2e8f0;border-radius:12px;padding:32px;">
+          <h2 style="color:#7c3aed;margin-bottom:4px;">MindShield AI</h2>
+          <h3 style="margin-bottom:20px;">New Support Message</h3>
+          <table style="width:100%;border-collapse:collapse;margin-bottom:20px;">
+            <tr><td style="color:#94a3b8;padding:6px 0;width:90px;">From</td><td style="color:#e2e8f0;">${name} &lt;${email}&gt;</td></tr>
+            <tr><td style="color:#94a3b8;padding:6px 0;">Subject</td><td style="color:#e2e8f0;">${subject}</td></tr>
+          </table>
+          <div style="background:#1e293b;border-radius:8px;padding:20px;white-space:pre-wrap;font-size:14px;line-height:1.6;">${message}</div>
+          <p style="color:#475569;font-size:12px;margin-top:20px;">Reply directly to this email to respond to ${name}.</p>
+        </div>
+      `,
+    });
+
+    res.json({ message: 'Message sent successfully' });
+  } catch (error) {
+    next(error);
+  }
+};

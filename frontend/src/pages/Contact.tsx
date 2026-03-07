@@ -1,6 +1,7 @@
 // Dashboard Contact Page
 import React, { useState } from 'react';
 import { Mail, MessageSquare, Phone, MapPin, ChevronDown, ChevronUp, Send } from 'lucide-react';
+import api from '../services/api';
 import { Card } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
@@ -24,13 +25,20 @@ export const Contact = () => {
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    await new Promise(r => setTimeout(r, 1200));
-    setSent(true);
-    setLoading(false);
+    setError('');
+    try {
+      await api.post('/auth/contact', form);
+      setSent(true);
+    } catch (err: any) {
+      setError(err.response?.data?.message || err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -96,6 +104,7 @@ export const Contact = () => {
                 <Button type="submit" isLoading={loading} className="w-full">
                   <Send className="h-4 w-4 mr-2" /> Send Message
                 </Button>
+                {error && <p className="text-sm text-red-400 text-center">{error}</p>}
               </form>
             )}
           </Card>

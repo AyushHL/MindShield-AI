@@ -1,5 +1,5 @@
 ﻿import { Router } from 'express';
-import { register, login, googleLogin, getProfile, updateProfile, changePassword, setPassword, deleteAccount, uploadAvatar, deleteAvatar, forgotPassword, resetPassword } from '../controllers/auth.controller';
+import { register, login, googleLogin, getProfile, updateProfile, changePassword, setPassword, deleteAccount, uploadAvatar, deleteAvatar, forgotPassword, resetPassword, sendContactEmail } from '../controllers/auth.controller';
 import { authenticateToken } from '../middleware/auth.middleware';
 import multer from 'multer';
 
@@ -18,5 +18,6 @@ router.post('/set-password', authenticateToken, setPassword);
 router.delete('/account', authenticateToken, deleteAccount);
 router.post('/avatar', authenticateToken, avatarUpload.single('avatar'), uploadAvatar);
 router.delete('/avatar', authenticateToken, deleteAvatar);
+router.post('/contact', authenticateToken, sendContactEmail);
 
 export default router;
