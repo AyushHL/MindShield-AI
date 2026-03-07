@@ -10,8 +10,8 @@ const faqs = [
   { q: 'How does the AI model detect suicidal ideation?', a: 'The platform uses a Bi-LSTM deep learning model trained on labelled crisis text datasets. It analyses semantic and contextual patterns to classify content into risk categories.' },
   { q: 'What are the three risk levels?', a: '"No Risk" (0–25) indicates no crisis signals. "Potential Risk" (26–69) suggests concerning language. "High Risk – Urgent" (70–100) indicates immediate crisis indicators.' },
   { q: 'What file formats can I upload?', a: 'The platform supports plain text input, PDF documents, and Microsoft Word (.docx) files. Content is processed securely.' },
-  { q: 'Is the data stored permanently?', a: 'Prediction results may be logged to your account history. Raw text is not retained beyond the analysis session.' },
-  { q: 'How accurate is the Bi-LSTM model?', a: 'The model was trained and validated as part of a B.Tech research project. Accuracy metrics and confusion matrices are in the project report.' },
+  { q: 'Is my data private and secure?', a: 'Yes. Raw input text is processed in-memory and never stored permanently. Only the risk score and timestamp are saved to your account history. No data is shared with third parties.' },
+  { q: 'Can MindShield AI replace a mental health professional?', a: 'No. MindShield AI is a screening and research tool only. It is not a substitute for clinical diagnosis or professional mental health intervention. Always consult a qualified professional for crisis situations.' },
 ];
 
 const contactInfo = [

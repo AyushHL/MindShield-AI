@@ -1,11 +1,11 @@
-﻿import { useState, useEffect } from 'react';
+﻿import { useState, useEffect, useRef, useCallback } from 'react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import api from '../services/api';
 import {
   AlertTriangle, Activity, FileText, Brain, TrendingUp,
-  ShieldCheck, ShieldAlert, ShieldX, Sparkles, X
+  ShieldCheck, ShieldAlert, ShieldX, Sparkles, X, Upload, File as FileIcon
 } from 'lucide-react';
 
 interface Prediction {
@@ -56,7 +56,11 @@ const RISK_CONFIG = [
 ];
 
 export const Dashboard = () => {
+  const [tab, setTab] = useState<'text' | 'file'>('text');
   const [text, setText] = useState('');
+  const [file, setFile] = useState<File | null>(null);
+  const [dragging, setDragging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [result, setResult] = useState<Prediction | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -90,20 +94,37 @@ export const Dashboard = () => {
   ];
 
   const handlePredict = async () => {
-    if (!text.trim()) return;
+    if (tab === 'text' && !text.trim()) return;
+    if (tab === 'file' && !file) return;
     setLoading(true);
     setError('');
     setResult(null);
     try {
-      const response = await api.post('/ml/predict', { text });
+      let response;
+      if (tab === 'file' && file) {
+        const formData = new FormData();
+        formData.append('file', file);
+        response = await api.post('/ml/predict', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+      } else {
+        response = await api.post('/ml/predict', { text });
+      }
       setResult(response.data);
       refreshStats();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to analyse text. Is the model service running?');
+      setError(err.response?.data?.message || 'Failed to analyse. Is the model service running?');
     } finally {
       setLoading(false);
     }
   };
+
+  const onDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setDragging(false);
+    const dropped = e.dataTransfer.files[0];
+    if (dropped) setFile(dropped);
+  }, []);
 
   const riskConfig = result != null ? (RISK_CONFIG[result.classId] ?? RISK_CONFIG[0]) : null;
 
@@ -142,21 +163,83 @@ export const Dashboard = () => {
             <h2 className="font-semibold text-white mb-4 flex items-center gap-2">
               <FileText className="h-4 w-4 text-violet-400" /> Text Analysis
             </h2>
-            <textarea
-              className="w-full h-52 rounded-xl border border-slate-700 bg-slate-800/50 p-4 text-sm text-white placeholder-slate-500 outline-none transition-all focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 resize-none font-mono"
-              placeholder="Paste text, social media content, or messages for risk assessment..."
-              value={text}
-              onChange={e => setText(e.target.value)}
-            />
+
+            {/* Tabs */}
+            <div className="flex gap-1 mb-4 p-1 bg-slate-800/60 rounded-lg w-fit">
+              {(['text', 'file'] as const).map(t => (
+                <button
+                  key={t}
+                  onClick={() => { setTab(t); setResult(null); setError(''); }}
+                  className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${tab === t ? 'bg-violet-600 text-white' : 'text-slate-400 hover:text-white'
+                    }`}
+                >
+                  {t === 'text' ? 'Plain Text' : 'Upload File'}
+                </button>
+              ))}
+            </div>
+
+            {tab === 'text' ? (
+              <textarea
+                className="w-full h-52 rounded-xl border border-slate-700 bg-slate-800/50 p-4 text-sm text-white placeholder-slate-500 outline-none transition-all focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 resize-none font-mono"
+                placeholder="Paste text, social media content, or messages for risk assessment..."
+                value={text}
+                onChange={e => setText(e.target.value)}
+              />
+            ) : (
+              <div
+                onDragOver={e => { e.preventDefault(); setDragging(true); }}
+                onDragLeave={() => setDragging(false)}
+                onDrop={onDrop}
+                onClick={() => fileInputRef.current?.click()}
+                className={`flex h-52 cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed transition-all ${dragging ? 'border-violet-500 bg-violet-500/10' : 'border-slate-700 bg-slate-800/30 hover:border-violet-500/50 hover:bg-slate-800/50'
+                  }`}
+              >
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                  className="hidden"
+                  onChange={e => { const f = e.target.files?.[0]; if (f) setFile(f); }}
+                />
+                {file ? (
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet-500/10 border border-violet-500/30">
+                      <FileIcon className="h-6 w-6 text-violet-400" />
+                    </div>
+                    <p className="text-sm font-medium text-white">{file.name}</p>
+                    <p className="text-xs text-slate-500">{(file.size / 1024).toFixed(1)} KB</p>
+                    <button
+                      onClick={e => { e.stopPropagation(); setFile(null); setResult(null); }}
+                      className="text-xs text-slate-500 hover:text-red-400 flex items-center gap-1 mt-1"
+                    >
+                      <X className="h-3 w-3" /> Remove
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-3 text-center">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-800 border border-slate-700">
+                      <Upload className="h-5 w-5 text-slate-500" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-slate-300">Drop a file or click to browse</p>
+                      <p className="text-xs text-slate-500 mt-1">PDF or DOCX · Max 5 MB</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className="mt-4 flex items-center justify-between">
-              <span className="text-xs text-slate-500">{text.length} characters</span>
+              <span className="text-xs text-slate-500">
+                {tab === 'text' ? `${text.length} characters` : (file ? '1 file selected' : 'No file selected')}
+              </span>
               <div className="flex gap-2">
-                {text && (
+                {tab === 'text' && text && (
                   <Button variant="ghost" size="sm" onClick={() => { setText(''); setResult(null); setError(''); }}>
                     <X className="h-3 w-3 mr-1" /> Clear
                   </Button>
                 )}
-                <Button onClick={handlePredict} isLoading={loading} disabled={!text.trim()}>
+                <Button onClick={handlePredict} isLoading={loading} disabled={tab === 'text' ? !text.trim() : !file}>
                   <Sparkles className="h-4 w-4 mr-2" /> Analyse Risk
                 </Button>
               </div>
