@@ -1,4 +1,4 @@
-@import "tailwindcss";
+﻿@import "tailwindcss";
 
 @theme {
   --font-sans: 'Inter', system-ui, sans-serif;
@@ -33,7 +33,18 @@ body {
 ::-webkit-scrollbar-thumb { background: #334155; border-radius: 999px; }
 ::-webkit-scrollbar-thumb:hover { background: #475569; }
 
-/* ── Keyframe animations ─────────────────────────────────── */
+/* Modal body — violet accent scrollbar */
+.modal-scroll::-webkit-scrollbar { width: 4px; }
+.modal-scroll::-webkit-scrollbar-track { background: transparent; border-radius: 999px; }
+.modal-scroll::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #7c3aed, #4f46e5);
+  border-radius: 999px;
+}
+.modal-scroll::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #8b5cf6, #6366f1);
+}
+
+/* Keyframe animations */
 @keyframes fade-in {
   from { opacity: 0; }
   to   { opacity: 1; }

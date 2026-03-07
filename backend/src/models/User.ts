@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document } from 'mongoose';
+﻿import mongoose, { Schema, Document } from 'mongoose';
 import bcrypt from 'bcryptjs';
 
 export interface IUser extends Document {
@@ -8,6 +8,8 @@ export interface IUser extends Document {
   googleId?: string | null;
   avatar?: string;
   createdAt: Date;
+  resetOtp?: string | null;
+  resetOtpExpiry?: Date | null;
   comparePassword(password: string): Promise<boolean>;
 }
 
@@ -17,7 +19,9 @@ const UserSchema: Schema = new Schema({
   passwordHash: { type: String, default: null },
   googleId: { type: String, default: null, sparse: true },
   avatar: { type: String, default: null },
-  createdAt: { type: Date, default: Date.now }
+  createdAt: { type: Date, default: Date.now },
+  resetOtp: { type: String, default: null },
+  resetOtpExpiry: { type: Date, default: null }
 });
 
 UserSchema.pre<IUser>('save', async function (next) {

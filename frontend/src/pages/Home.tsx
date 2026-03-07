@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { Shield, Brain, Activity, Lock, ArrowRight, Zap, Users, BarChart3, CheckCircle2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { PublicNavbar } from '../components/layout/Navbar';

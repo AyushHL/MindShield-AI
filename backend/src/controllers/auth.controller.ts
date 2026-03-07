@@ -1,19 +1,22 @@
-import { Request, Response, NextFunction } from 'express';
+﻿import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { OAuth2Client } from 'google-auth-library';
+import nodemailer from 'nodemailer';
+import crypto from 'crypto';
+import bcrypt from 'bcryptjs';
 import User from '../models/User';
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const validatePassword = (password: string): string | null => {
-  if (!password || password.length < 8)       return 'Password must be at least 8 characters long';
-  if (password.length > 64)                   return 'Password must not exceed 64 characters';
-  if (!/[A-Z]/.test(password))                return 'Password must contain at least one uppercase letter';
-  if (!/[a-z]/.test(password))                return 'Password must contain at least one lowercase letter';
-  if (!/[0-9]/.test(password))                return 'Password must contain at least one number';
+  if (!password || password.length < 8) return 'Password must be at least 8 characters long';
+  if (password.length > 64)             return 'Password must not exceed 64 characters';
+  if (!/[A-Z]/.test(password))          return 'Password must contain at least one uppercase letter';
+  if (!/[a-z]/.test(password))          return 'Password must contain at least one lowercase letter';
+  if (!/[0-9]/.test(password))          return 'Password must contain at least one number';
   if (!/[@#$%&*!^()_\-+=[\]{};:'",.<>?/\\|`~]/.test(password))
-                                               return 'Password must contain at least one special character';
-  if (/\s/.test(password))                    return 'Password must not contain spaces';
+                                        return 'Password must contain at least one special character';
+  if (/\s/.test(password))              return 'Password must not contain spaces';
   return null;
 };
 
@@ -50,7 +53,7 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
     if (!user) return res.status(401).json({ message: 'Invalid credentials' });
 
     if (!user.passwordHash) {
-      return res.status(400).json({ message: 'This account uses Google sign-in. Please use the Google button to log in.' });
+      return res.status(400).json({ message: 'This account uses Google sign-in. Please use the Google button to log in or set a password via Forgot Password.' });
     }
 
     if (!(await user.comparePassword(password))) {
@@ -210,6 +213,102 @@ export const deleteAccount = async (req: Request & { user?: any }, res: Response
 
     await User.findByIdAndDelete(req.user.userId);
     res.json({ message: 'Account deleted' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const createMailTransporter = () =>
+  nodemailer.createTransport({
+    service: 'gmail',
+    auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
+  });
+
+export const forgotPassword = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ message: 'Email is required' });
+
+    const user = await User.findOne({ email });
+    
+    if (!user) {
+      return res.json({ message: 'If that email is registered, an OTP has been sent.' });
+    }
+
+    const otp = crypto.randomInt(100000, 999999).toString();
+    const salt = await bcrypt.genSalt(10);
+    const hashedOtp = await bcrypt.hash(otp, salt);
+
+    user.resetOtp = hashedOtp;
+    user.resetOtpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    await user.save();
+
+    const transporter = createMailTransporter();
+
+    // Verify SMTP connection before sending
+    try {
+      await transporter.verify();
+    } catch (verifyErr: any) {
+      console.error('[Mail] SMTP connection failed:', verifyErr?.message);
+      console.error('[Mail] EMAIL_USER:', process.env.EMAIL_USER ? 'set' : 'MISSING');
+      console.error('[Mail] EMAIL_PASS:', process.env.EMAIL_PASS ? 'set' : 'MISSING');
+      return res.status(500).json({ message: `Mail server connection failed: ${verifyErr?.message}` });
+    }
+
+    try {
+      await transporter.sendMail({
+        from: `"MindShield AI" <${process.env.EMAIL_USER}>`,
+        to: email,
+        subject: 'Your MindShield AI Password Reset OTP',
+        html: `
+          <div style="font-family:sans-serif;max-width:480px;margin:auto;background:#0f172a;color:#e2e8f0;border-radius:12px;padding:32px;">
+            <h2 style="color:#7c3aed;margin-bottom:8px;">MindShield AI</h2>
+            <h3 style="margin-bottom:16px;">Password Reset OTP</h3>
+            <p>Use the OTP below to reset your password. It expires in <strong>10 minutes</strong>.</p>
+            <div style="background:#1e293b;border-radius:8px;padding:20px;text-align:center;margin:24px 0;">
+              <span style="font-size:36px;font-weight:bold;letter-spacing:12px;color:#a78bfa;">${otp}</span>
+            </div>
+            <p style="color:#94a3b8;font-size:13px;">If you did not request a password reset, you can safely ignore this email.</p>
+          </div>
+        `,
+      });
+      console.log('[Mail] OTP sent to', email);
+    } catch (sendErr: any) {
+      console.error('[Mail] sendMail failed:', sendErr?.message);
+      return res.status(500).json({ message: `Failed to send email: ${sendErr?.message}` });
+    }
+
+    res.json({ message: 'If that email is registered, an OTP has been sent.' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const resetPassword = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { email, otp, newPassword } = req.body;
+    if (!email || !otp || !newPassword)
+      return res.status(400).json({ message: 'Email, OTP, and new password are required' });
+
+    const user = await User.findOne({ email });
+    if (!user || !user.resetOtp || !user.resetOtpExpiry)
+      return res.status(400).json({ message: 'Invalid or expired OTP' });
+
+    if (new Date() > user.resetOtpExpiry)
+      return res.status(400).json({ message: 'OTP has expired. Please request a new one.' });
+
+    const otpValid = await bcrypt.compare(otp, user.resetOtp);
+    if (!otpValid) return res.status(400).json({ message: 'Invalid OTP' });
+
+    const passwordError = validatePassword(newPassword);
+    if (passwordError) return res.status(400).json({ message: passwordError });
+
+    user.passwordHash = newPassword;
+    user.resetOtp = null;
+    user.resetOtpExpiry = null;
+    await user.save();
+
+    res.json({ message: 'Password reset successfully. You can now log in.' });
   } catch (error) {
     next(error);
   }
