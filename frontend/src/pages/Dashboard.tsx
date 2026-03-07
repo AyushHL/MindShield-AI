@@ -111,6 +111,7 @@ export const Dashboard = () => {
         response = await api.post('/ml/predict', { text });
       }
       setResult(response.data);
+      window.dispatchEvent(new Event('analysis-complete'));
       refreshStats();
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to analyse. Is the model service running?');

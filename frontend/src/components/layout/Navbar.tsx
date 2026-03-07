@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, ChevronDown, LogOut, Settings, Shield } from 'lucide-react';
+import { ChevronDown, LogOut, Settings, Shield } from 'lucide-react';
 import { cn } from '../../lib/utils';
+import { NotificationBell } from './NotificationBell';
 
 interface DashboardNavbarProps {
   sidebarCollapsed: boolean;
@@ -19,13 +20,13 @@ export const DashboardNavbar: React.FC<DashboardNavbarProps> = ({ sidebarCollaps
   const navigate = useNavigate();
 
   useEffect(() => {
-    // close dropdown on outside click
+    // Close dropdown on outside click
     const handler = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) setProfileOpen(false);
     };
     document.addEventListener('mousedown', handler);
 
-    // re-sync user (avatar, username…) whenever Settings saves
+    // Re-sync user (avatar, username…) whenever Settings saves
     const syncUser = () => setUser(readUser());
     window.addEventListener('user-updated', syncUser);
 
@@ -33,7 +34,7 @@ export const DashboardNavbar: React.FC<DashboardNavbarProps> = ({ sidebarCollaps
       document.removeEventListener('mousedown', handler);
       window.removeEventListener('user-updated', syncUser);
     };
-  }, [])
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -54,10 +55,7 @@ export const DashboardNavbar: React.FC<DashboardNavbarProps> = ({ sidebarCollaps
       </div>
 
       <div className="flex items-center gap-3">
-        <button className="relative rounded-xl p-2 text-slate-400 transition-colors hover:bg-slate-800 hover:text-white">
-          <Bell className="h-4 w-4" />
-          <span className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-violet-500" />
-        </button>
+        <NotificationBell />
 
         <div ref={ref} className="relative">
           <button
