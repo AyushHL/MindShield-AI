@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
@@ -6,7 +6,7 @@ import api from '../services/api';
 import {
   FileText, ShieldCheck, ShieldAlert, ShieldX, Trash2,
   Eye, Search, ChevronLeft, ChevronRight, X, Activity,
-  RefreshCw, AlertTriangle,
+  RefreshCw, AlertTriangle, ChevronDown,
 } from 'lucide-react';
 
 // Types
@@ -181,6 +181,18 @@ export const Reports = () => {
   /* Filters */
   const [search, setSearch] = useState('');
   const [classFilter, setClassFilter] = useState<'' | '0' | '1' | '2'>('');
+  const [filterOpen, setFilterOpen] = useState(false);
+  const filterRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
+        setFilterOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
 
   /* Pagination */
   const [page, setPage] = useState(1);
@@ -317,17 +329,51 @@ export const Reports = () => {
             />
           </div>
 
-          {/* Risk filter */}
-          <select
-            value={classFilter}
-            onChange={e => setClassFilter(e.target.value as '' | '0' | '1' | '2')}
-            className="h-10 bg-slate-800 border border-slate-700 rounded-xl px-2 sm:px-3 text-xs sm:text-sm text-slate-200 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-colors cursor-pointer shrink-0"
-          >
-            <option value="">All Risks</option>
-            <option value="0">No Risk</option>
-            <option value="1">Potential Risk</option>
-            <option value="2">High Risk</option>
-          </select>
+          {/* Risk filter – custom dropdown */}
+          <div ref={filterRef} className="relative shrink-0">
+            <button
+              onClick={() => setFilterOpen(o => !o)}
+              className="h-10 w-[140px] sm:w-[160px] flex items-center justify-between gap-2 bg-slate-800 border border-slate-700 rounded-xl pl-3 pr-3 text-xs sm:text-sm text-slate-200 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-colors cursor-pointer"
+            >
+              <span>{
+                classFilter === '' ? 'All Risks'
+                  : classFilter === '0' ? 'No Risk'
+                    : classFilter === '1' ? 'Potential Risk'
+                      : 'High Risk'
+              }</span>
+              <ChevronDown
+                className={`h-4 w-4 text-slate-400 transition-transform duration-300 ${filterOpen ? 'rotate-180' : 'rotate-0'
+                  }`}
+              />
+            </button>
+
+            {/* Dropdown panel */}
+            <div
+              className={`absolute right-0 mt-1.5 w-40 rounded-xl bg-slate-800/95 backdrop-blur-md border border-slate-700 shadow-xl z-20 overflow-hidden
+                transition-all duration-200 origin-top ${filterOpen
+                  ? 'opacity-100 scale-y-100 translate-y-0 pointer-events-auto'
+                  : 'opacity-0 scale-y-90 -translate-y-1 pointer-events-none'
+                }`}
+            >
+              {([
+                { value: '', label: 'All Risks' },
+                { value: '0', label: 'No Risk' },
+                { value: '1', label: 'Potential Risk' },
+                { value: '2', label: 'High Risk' },
+              ] as const).map(opt => (
+                <button
+                  key={opt.value}
+                  onClick={() => { setClassFilter(opt.value); setFilterOpen(false); }}
+                  className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${classFilter === opt.value
+                    ? 'bg-violet-600/30 text-violet-300 font-medium'
+                    : 'text-slate-300 hover:bg-slate-700/60 hover:text-white'
+                    }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
 
           <Button variant="outline" size="sm" onClick={() => { setSearch(''); setClassFilter(''); }} className="shrink-0 px-2 sm:px-3 text-xs sm:text-sm h-10">
             <RefreshCw className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
@@ -440,11 +486,10 @@ export const Reports = () => {
                     <button
                       key={p}
                       onClick={() => setPage(p)}
-                      className={`h-7 w-7 rounded-lg text-xs font-medium transition-colors ${
-                        p === page
-                          ? 'bg-violet-600 text-white'
-                          : 'text-slate-400 hover:text-white hover:bg-slate-800'
-                      }`}
+                      className={`h-7 w-7 rounded-lg text-xs font-medium transition-colors ${p === page
+                        ? 'bg-violet-600 text-white'
+                        : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                        }`}
                     >
                       {p}
                     </button>
