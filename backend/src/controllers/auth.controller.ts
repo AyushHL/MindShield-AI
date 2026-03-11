@@ -1,4 +1,4 @@
-﻿import { Request, Response, NextFunction } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { OAuth2Client } from 'google-auth-library';
 import nodemailer from 'nodemailer';
@@ -62,7 +62,7 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET || 'secret', { expiresIn: '1h' });
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET || 'secret', { expiresIn: '1d' });
     res.json({ token, user: { id: user._id, username: user.username, email: user.email, hasPassword: true } });
   } catch (error) {
     next(error);
@@ -95,7 +95,7 @@ export const googleLogin = async (req: Request, res: Response, next: NextFunctio
       await user.save();
     }
 
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET || 'secret', { expiresIn: '1h' });
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET || 'secret', { expiresIn: '1d' });
     res.json({ token, user: { id: user._id, username: user.username, email: user.email, hasPassword: !!user.passwordHash } });
   } catch (error) {
     next(error);
