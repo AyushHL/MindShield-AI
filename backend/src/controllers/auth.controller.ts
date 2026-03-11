@@ -63,7 +63,7 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
     }
 
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET || 'secret', { expiresIn: '1d' });
-    res.json({ token, user: { id: user._id, username: user.username, email: user.email, hasPassword: true } });
+    res.json({ token, user: { id: user._id, username: user.username, email: user.email, avatar: user.avatar ?? null, hasPassword: true } });
   } catch (error) {
     next(error);
   }
@@ -96,7 +96,7 @@ export const googleLogin = async (req: Request, res: Response, next: NextFunctio
     }
 
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET || 'secret', { expiresIn: '1d' });
-    res.json({ token, user: { id: user._id, username: user.username, email: user.email, hasPassword: !!user.passwordHash } });
+    res.json({ token, user: { id: user._id, username: user.username, email: user.email, avatar: user.avatar ?? null, hasPassword: !!user.passwordHash } });
   } catch (error) {
     next(error);
   }
@@ -155,7 +155,7 @@ export const updateProfile = async (req: Request & { user?: any }, res: Response
     ).select('-passwordHash');
     if (!user) return res.status(404).json({ message: 'User not found' });
 
-    res.json({ message: 'Profile updated', user: { id: user._id, username: user.username, email: user.email } });
+    res.json({ message: 'Profile updated', user: { id: user._id, username: user.username, email: user.email, avatar: user.avatar ?? null } });
   } catch (error) {
     next(error);
   }
