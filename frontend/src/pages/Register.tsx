@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Eye, EyeOff } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
@@ -11,13 +12,13 @@ interface PasswordRule {
 }
 
 const PASSWORD_RULES: PasswordRule[] = [
-  { label: 'At least 8 characters',          test: (pw) => pw.length >= 8 },
-  { label: 'No more than 64 characters',      test: (pw) => pw.length <= 64 },
-  { label: 'At least one uppercase letter',   test: (pw) => /[A-Z]/.test(pw) },
-  { label: 'At least one lowercase letter',   test: (pw) => /[a-z]/.test(pw) },
-  { label: 'At least one number',             test: (pw) => /[0-9]/.test(pw) },
-  { label: 'At least one special character',  test: (pw) => /[@#$%&*!^()_\-+=[\]{};:'",.<>?/\\|`~]/.test(pw) },
-  { label: 'No spaces',                       test: (pw) => !/\s/.test(pw) },
+  { label: 'At least 8 characters', test: (pw) => pw.length >= 8 },
+  { label: 'No more than 64 characters', test: (pw) => pw.length <= 64 },
+  { label: 'At least one uppercase letter', test: (pw) => /[A-Z]/.test(pw) },
+  { label: 'At least one lowercase letter', test: (pw) => /[a-z]/.test(pw) },
+  { label: 'At least one number', test: (pw) => /[0-9]/.test(pw) },
+  { label: 'At least one special character', test: (pw) => /[@#$%&*!^()_\-+=[\]{};:'",.<>?/\\|`~]/.test(pw) },
+  { label: 'No spaces', test: (pw) => !/\s/.test(pw) },
 ];
 
 export const Register = () => {
@@ -27,6 +28,8 @@ export const Register = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordTouched, setPasswordTouched] = useState(false);
   const [confirmTouched, setConfirmTouched] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
@@ -93,13 +96,20 @@ export const Register = () => {
 
             {/* Password field + live rules checklist */}
             <div>
-              <Input
-                label="Password"
-                type="password"
-                required
-                value={password}
-                onChange={(e) => { setPassword(e.target.value); setPasswordTouched(true); }}
-              />
+              <div className="relative">
+                <Input
+                  label="Password"
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  value={password}
+                  onChange={(e) => { setPassword(e.target.value); setPasswordTouched(true); }}
+                  className="pr-10"
+                />
+                <button type="button" onClick={() => setShowPassword(p => !p)}
+                  className="absolute right-3 top-[26px] flex h-10 items-center text-slate-500 hover:text-slate-300 transition-colors">
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
               {passwordTouched && password.length > 0 && (
                 <ul className="mt-2 space-y-1 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2">
                   {ruleResults.map((rule) => (
@@ -120,12 +130,17 @@ export const Register = () => {
             <div className="relative">
               <Input
                 label="Confirm Password"
-                type="password"
+                type={showConfirm ? 'text' : 'password'}
                 required
                 value={confirmPassword}
                 onChange={(e) => { setConfirmPassword(e.target.value); setConfirmTouched(true); }}
                 error={passwordMismatch ? ' ' : undefined}
+                className="pr-10"
               />
+              <button type="button" onClick={() => setShowConfirm(p => !p)}
+                className="absolute right-3 top-[26px] flex h-10 items-center text-slate-500 hover:text-slate-300 transition-colors">
+                {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
               {passwordMismatch && (
                 <div className="absolute left-1/2 top-full z-50 mt-2 -translate-x-1/2 whitespace-nowrap rounded-lg border border-red-500/40 bg-slate-900 px-3 py-2 text-xs text-red-400 shadow-lg">
                   <span className="mr-1">⚠</span> Passwords do not match

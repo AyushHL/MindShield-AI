@@ -1,5 +1,5 @@
-﻿import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { X, Mail, Lock, KeyRound, ArrowLeft } from 'lucide-react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { X, Mail, Lock, KeyRound, ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import api from '../services/api';
 
@@ -38,6 +38,8 @@ export const ForgotPassword: React.FC<ForgotPasswordProps> = ({
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
   const [newPasswordTouched, setNewPasswordTouched] = useState(false);
   const [confirmTouched, setConfirmTouched] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -233,13 +235,17 @@ export const ForgotPassword: React.FC<ForgotPasswordProps> = ({
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
                     <input
-                      type="password"
-                      className="w-full rounded-xl border border-slate-700 bg-slate-950 py-2.5 pl-10 pr-4 text-sm text-white placeholder-slate-500 focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500"
+                      type={showNewPassword ? 'text' : 'password'}
+                      className="w-full rounded-xl border border-slate-700 bg-slate-950 py-2.5 pl-10 pr-10 text-sm text-white placeholder-slate-500 focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500"
                       placeholder="New password"
                       value={newPassword}
                       onChange={e => { setNewPassword(e.target.value); setNewPasswordTouched(true); }}
                       required
                     />
+                    <button type="button" onClick={() => setShowNewPassword(p => !p)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center text-slate-500 hover:text-slate-300 transition-colors">
+                      {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
                   </div>
                   {newPasswordTouched && newPassword.length > 0 && (
                     <ul className="mt-2 space-y-1 rounded-lg border border-slate-700 bg-slate-950 px-3 py-2">
@@ -262,17 +268,20 @@ export const ForgotPassword: React.FC<ForgotPasswordProps> = ({
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
                     <input
-                      type="password"
-                      className={`w-full rounded-xl border py-2.5 pl-10 pr-4 text-sm text-white placeholder-slate-500 bg-slate-950 focus:outline-none focus:ring-1 focus:ring-violet-500 transition-colors ${
-                        passwordMismatch
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      className={`w-full rounded-xl border py-2.5 pl-10 pr-10 text-sm text-white placeholder-slate-500 bg-slate-950 focus:outline-none focus:ring-1 focus:ring-violet-500 transition-colors ${passwordMismatch
                           ? 'border-red-500 focus:border-red-500'
                           : 'border-slate-700 focus:border-violet-500'
-                      }`}
+                        }`}
                       placeholder="Confirm new password"
                       value={confirmNewPassword}
                       onChange={e => { setConfirmNewPassword(e.target.value); setConfirmTouched(true); }}
                       required
                     />
+                    <button type="button" onClick={() => setShowConfirmPassword(p => !p)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center text-slate-500 hover:text-slate-300 transition-colors">
+                      {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
                   </div>
                   {passwordMismatch && (
                     <div className="absolute left-1/2 top-full z-50 mt-2 -translate-x-1/2 whitespace-nowrap rounded-lg border border-red-500/40 bg-slate-900 px-3 py-2 text-xs text-red-400 shadow-lg">

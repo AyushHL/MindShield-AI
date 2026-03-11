@@ -1,5 +1,5 @@
-﻿import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { X, Mail, Lock, User, KeyRound, ArrowLeft } from 'lucide-react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { X, Mail, Lock, User, KeyRound, ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { Button } from './ui/Button';
 import { cn } from '../lib/utils';
 import api from '../services/api';
@@ -34,6 +34,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, defaultTa
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [username, setUsername] = useState('');
+
+  // toggle visibility
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmNew, setShowConfirmNew] = useState(false);
 
   // signup password touched
   const [signupPasswordTouched, setSignupPasswordTouched] = useState(false);
@@ -320,13 +326,17 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, defaultTa
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
                     <input
-                      type="password"
-                      className="w-full rounded-xl border border-slate-700 bg-slate-950 py-2.5 pl-10 pr-4 text-sm text-white placeholder-slate-500 focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500"
+                      type={showPassword ? 'text' : 'password'}
+                      className="w-full rounded-xl border border-slate-700 bg-slate-950 py-2.5 pl-10 pr-10 text-sm text-white placeholder-slate-500 focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500"
                       placeholder="Password"
                       value={password}
                       onChange={e => { setPassword(e.target.value); if (tab === 'signup') setSignupPasswordTouched(true); }}
                       required
                     />
+                    <button type="button" onClick={() => setShowPassword(p => !p)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center text-slate-500 hover:text-slate-300 transition-colors">
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
                   </div>
                   {tab === 'signup' && signupPasswordTouched && password.length > 0 && (
                     <ul className="mt-2 space-y-1 rounded-lg border border-slate-700 bg-slate-950 px-3 py-2">
@@ -349,8 +359,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, defaultTa
                     <div className="relative">
                       <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
                       <input
-                        type="password"
-                        className={`w-full rounded-xl border py-2.5 pl-10 pr-4 text-sm text-white placeholder-slate-500 bg-slate-950 focus:outline-none focus:ring-1 transition-colors ${
+                        type={showConfirm ? 'text' : 'password'}
+                        className={`w-full rounded-xl border py-2.5 pl-10 pr-10 text-sm text-white placeholder-slate-500 bg-slate-950 focus:outline-none focus:ring-1 transition-colors ${
                           signupPasswordMismatch
                             ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
                             : 'border-slate-700 focus:border-violet-500 focus:ring-violet-500'
@@ -360,6 +370,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, defaultTa
                         onChange={e => { setConfirmPassword(e.target.value); setSignupConfirmTouched(true); }}
                         required
                       />
+                      <button type="button" onClick={() => setShowConfirm(p => !p)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center text-slate-500 hover:text-slate-300 transition-colors">
+                        {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
                     </div>
                     {signupPasswordMismatch && (
                       <div className="absolute left-1/2 top-full z-50 mt-2 -translate-x-1/2 whitespace-nowrap rounded-lg border border-red-500/40 bg-slate-900 px-3 py-2 text-xs text-red-400 shadow-lg">
@@ -431,13 +445,17 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, defaultTa
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
                     <input
-                      type="password"
-                      className="w-full rounded-xl border border-slate-700 bg-slate-950 py-2.5 pl-10 pr-4 text-sm text-white placeholder-slate-500 focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500"
+                      type={showNewPassword ? 'text' : 'password'}
+                      className="w-full rounded-xl border border-slate-700 bg-slate-950 py-2.5 pl-10 pr-10 text-sm text-white placeholder-slate-500 focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500"
                       placeholder="New password"
                       value={newPassword}
                       onChange={e => { setNewPassword(e.target.value); setNewPasswordTouched(true); }}
                       required
                     />
+                    <button type="button" onClick={() => setShowNewPassword(p => !p)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center text-slate-500 hover:text-slate-300 transition-colors">
+                      {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
                   </div>
                   {newPasswordTouched && newPassword.length > 0 && (
                     <ul className="mt-2 space-y-1 rounded-lg border border-slate-700 bg-slate-950 px-3 py-2">
@@ -460,8 +478,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, defaultTa
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
                     <input
-                      type="password"
-                      className={`w-full rounded-xl border py-2.5 pl-10 pr-4 text-sm text-white placeholder-slate-500 bg-slate-950 focus:outline-none focus:ring-1 transition-colors ${
+                      type={showConfirmNew ? 'text' : 'password'}
+                      className={`w-full rounded-xl border py-2.5 pl-10 pr-10 text-sm text-white placeholder-slate-500 bg-slate-950 focus:outline-none focus:ring-1 transition-colors ${
                         passwordMismatch
                           ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
                           : 'border-slate-700 focus:border-violet-500 focus:ring-violet-500'
@@ -471,6 +489,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, defaultTa
                       onChange={e => { setConfirmNewPassword(e.target.value); setConfirmNewTouched(true); }}
                       required
                     />
+                    <button type="button" onClick={() => setShowConfirmNew(p => !p)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center text-slate-500 hover:text-slate-300 transition-colors">
+                      {showConfirmNew ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
                   </div>
                   {passwordMismatch && (
                     <div className="absolute left-1/2 top-full z-50 mt-2 -translate-x-1/2 whitespace-nowrap rounded-lg border border-red-500/40 bg-slate-900 px-3 py-2 text-xs text-red-400 shadow-lg">
