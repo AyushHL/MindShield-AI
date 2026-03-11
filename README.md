@@ -2,15 +2,18 @@
 
 > AI-powered early-warning platform using a Bi-LSTM neural network for three-tier risk classification.
 
+🌐 **Live**: [https://mindshield-ai.netlify.app/](https://mindshield-ai.netlify.app/)
+
 ---
 
 ## Architecture
 
-| Service | Stack | Port |
-|---|---|---|
-| **ML Service** | Python · FastAPI · TensorFlow | `8000` |
-| **Backend API** | Node.js · Express · TypeScript | `5001` |
-| **Frontend** | React · Vite · TypeScript · Tailwind CSS v4 | `5173` |
+| Service | Stack | Local Port | Deployed On |
+|---|---|---|---|
+| **ML Service** | Python · FastAPI · TensorFlow | `8000` | Hugging Face Spaces |
+| **Backend API** | Node.js · Express · TypeScript | `5001` | Azure Web App |
+| **Frontend** | React · Vite · TypeScript · Tailwind CSS v4 | `5173` | Netlify |
+| **Database** | MongoDB-compatible API | — | Azure Cosmos DB |
 
 ---
 
@@ -22,6 +25,40 @@ Make sure the following are installed before starting:
 - **Python** 3.9 or higher — https://python.org
 - **MongoDB** running locally on default port `27017` — https://www.mongodb.com/try/download/community
 - **pip** (comes with Python)
+
+---
+
+## Environment Variables
+
+### Backend (`backend/.env`)
+
+Create a `backend/.env` file with the following variables:
+
+```env
+# Server
+PORT=5001
+
+# MongoDB connection string
+MONGO_URI=mongodb://localhost:27017/ai_mind_shield
+
+# JSON Web Token secret (use a strong random string)
+JWT_SECRET=your_jwt_secret_here
+
+# ML service URL
+ML_SERVICE_URL=http://localhost:8000
+
+# Gmail account used for sending emails (e.g. OTP, alerts)
+EMAIL_USER=your_email@gmail.com
+
+# Gmail App Password (not your regular password — generate one in Google Account settings)
+EMAIL_PASS=your_gmail_app_password
+
+# Google OAuth Client ID (from Google Cloud Console)
+GOOGLE_CLIENT_ID=your_google_client_id.apps.googleusercontent.com
+```
+
+> **Note:** For `EMAIL_PASS`, generate a [Gmail App Password](https://myaccount.google.com/apppasswords) — do **not** use your regular Gmail password.  
+> For `GOOGLE_CLIENT_ID`, create credentials in the [Google Cloud Console](https://console.cloud.google.com/).
 
 ---
 
@@ -46,15 +83,6 @@ Required model files (must already be present in `model_service/`):
 ```bash
 cd backend
 npm install
-```
-
-Verify `backend/.env` contains:
-
-```env
-PORT=5001
-MONGO_URI=mongodb://localhost:27017/ai_mind_shield
-JWT_SECRET=supersecretkey123
-ML_SERVICE_URL=http://localhost:8000
 ```
 
 ### 3. Frontend dependencies
