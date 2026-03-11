@@ -1,11 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronDown, LogOut, Settings, Shield } from 'lucide-react';
+import { ChevronDown, LogOut, Settings, Shield, Menu, X } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { NotificationBell } from './NotificationBell';
 
 interface DashboardNavbarProps {
   sidebarCollapsed: boolean;
+  onMobileMenuToggle: () => void;
 }
 
 const readUser = () => {
@@ -13,7 +14,7 @@ const readUser = () => {
   catch { return {}; }
 };
 
-export const DashboardNavbar: React.FC<DashboardNavbarProps> = ({ sidebarCollapsed }) => {
+export const DashboardNavbar: React.FC<DashboardNavbarProps> = ({ sidebarCollapsed, onMobileMenuToggle }) => {
   const [profileOpen, setProfileOpen] = useState(false);
   const [user, setUser] = useState(readUser);
   const ref = useRef<HTMLDivElement>(null);
@@ -44,14 +45,23 @@ export const DashboardNavbar: React.FC<DashboardNavbarProps> = ({ sidebarCollaps
 
   return (
     <header className={cn(
-      'fixed top-0 right-0 z-30 flex h-16 items-center justify-between border-b border-slate-800 bg-slate-950/80 backdrop-blur-md px-6 transition-all duration-300',
-      sidebarCollapsed ? 'left-16' : 'left-60'
+      'fixed top-0 right-0 z-30 flex h-16 items-center justify-between border-b border-slate-800 bg-slate-950/80 backdrop-blur-md px-4 md:px-6 transition-all duration-300',
+      // Mobile: full width. Desktop: offset by sidebar width.
+      'left-0 md:left-16',
+      !sidebarCollapsed && 'md:left-60'
     )}>
       <div className="flex items-center gap-2">
+        {/* Mobile hamburger */}
+        <button
+          onClick={onMobileMenuToggle}
+          className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-800 hover:text-white md:hidden"
+        >
+          <Menu className="h-5 w-5" />
+        </button>
         <Shield className="h-5 w-5 text-violet-500" />
-        <span className="text-sm font-medium text-slate-300">MindShield AI</span>
-        <span className="text-slate-600">/</span>
-        <span className="text-sm text-slate-500">Dashboard</span>
+        <span className="text-sm font-medium text-slate-300 hidden sm:inline">MindShield AI</span>
+        <span className="text-slate-600 hidden sm:inline">/</span>
+        <span className="text-sm text-slate-500 hidden sm:inline">Dashboard</span>
       </div>
 
       <div className="flex items-center gap-3">
@@ -60,7 +70,7 @@ export const DashboardNavbar: React.FC<DashboardNavbarProps> = ({ sidebarCollaps
         <div ref={ref} className="relative">
           <button
             onClick={() => setProfileOpen(v => !v)}
-            className="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900 px-3 py-2 text-sm text-slate-300 transition-all duration-200 hover:border-slate-700 hover:text-white"
+            className="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900 px-2 sm:px-3 py-2 text-sm text-slate-300 transition-all duration-200 hover:border-slate-700 hover:text-white"
           >
             <div className="flex h-6 w-6 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-violet-500 to-cyan-500 text-xs font-bold text-white">
               {user.avatar
@@ -111,10 +121,11 @@ export const PublicNavbar: React.FC<{ onLoginClick: () => void; onSignupClick: (
 }) => {
   const token = localStorage.getItem('token');
   const navigate = useNavigate();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
     <nav className="fixed top-0 z-50 w-full border-b border-slate-800/50 bg-slate-950/80 backdrop-blur-md">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
         <div className="flex items-center gap-2">
           <Shield className="h-7 w-7 text-violet-500" />
           <span className="text-lg font-bold text-white tracking-tight">MindShield AI</span>
@@ -134,9 +145,10 @@ export const PublicNavbar: React.FC<{ onLoginClick: () => void; onSignupClick: (
           ))}
         </div>
         <div className="flex items-center gap-3">
+          {/* Desktop auth buttons */}
           {!token ? (
             <>
-              <button onClick={onLoginClick} className="text-sm text-slate-400 transition-colors hover:text-white px-3 py-2">
+              <button onClick={onLoginClick} className="hidden sm:inline-flex text-sm text-slate-400 transition-colors hover:text-white px-3 py-2">
                 Sign in
               </button>
               <button
@@ -154,8 +166,44 @@ export const PublicNavbar: React.FC<{ onLoginClick: () => void; onSignupClick: (
               Dashboard
             </button>
           )}
+          {/* Mobile hamburger */}
+          <button
+            onClick={() => setMobileMenuOpen(v => !v)}
+            className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-800 hover:text-white md:hidden"
+          >
+            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
         </div>
       </div>
+
+      {/* Mobile dropdown menu */}
+      {mobileMenuOpen && (
+        <div className="md:hidden border-t border-slate-800 bg-slate-950/95 backdrop-blur-md animate-fade-in-up">
+          <div className="flex flex-col gap-1 px-4 py-3">
+            {['Features', 'How It Works', 'Contact'].map(item => (
+              <button
+                key={item}
+                onClick={() => {
+                  const id = item.toLowerCase().replace(/\s/g, '-');
+                  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+                  setMobileMenuOpen(false);
+                }}
+                className="text-sm text-slate-400 transition-colors hover:text-white text-left px-3 py-2.5 rounded-lg hover:bg-slate-800"
+              >
+                {item}
+              </button>
+            ))}
+            {!token && (
+              <button
+                onClick={() => { onLoginClick(); setMobileMenuOpen(false); }}
+                className="text-sm text-slate-400 transition-colors hover:text-white text-left px-3 py-2.5 rounded-lg hover:bg-slate-800 sm:hidden"
+              >
+                Sign in
+              </button>
+            )}
+          </div>
+        </div>
+      )}
     </nav>
   );
 };

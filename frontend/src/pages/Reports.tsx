@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
@@ -267,7 +267,7 @@ export const Reports = () => {
   return (
     <div className="space-y-6">
       {/* Page header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-white">Analysis Reports</h1>
           <p className="text-sm text-slate-400 mt-1">History of all past risk assessments</p>
@@ -304,16 +304,16 @@ export const Reports = () => {
 
       {/* Filters */}
       <Card className="p-4">
-        <div className="flex flex-col sm:flex-row gap-3 items-center">
+        <div className="flex items-center gap-2 sm:gap-3">
           {/* Search */}
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 pointer-events-none" />
+          <div className="relative flex-1 min-w-0">
+            <Search className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 pointer-events-none" />
             <input
               type="text"
-              placeholder="Search text snippets…"
+              placeholder="Search..."
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="w-full h-10 bg-slate-800 border border-slate-700 rounded-xl pl-9 pr-4 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-colors"
+              className="w-full h-10 bg-slate-800 border border-slate-700 rounded-xl pl-8 sm:pl-9 pr-2 sm:pr-4 text-xs sm:text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-colors"
             />
           </div>
 
@@ -321,17 +321,17 @@ export const Reports = () => {
           <select
             value={classFilter}
             onChange={e => setClassFilter(e.target.value as '' | '0' | '1' | '2')}
-            className="h-10 bg-slate-800 border border-slate-700 rounded-xl px-3 text-sm text-slate-200 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-colors cursor-pointer"
+            className="h-10 bg-slate-800 border border-slate-700 rounded-xl px-2 sm:px-3 text-xs sm:text-sm text-slate-200 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-colors cursor-pointer shrink-0"
           >
-            <option value="">All Risk Levels</option>
+            <option value="">All Risks</option>
             <option value="0">No Risk</option>
             <option value="1">Potential Risk</option>
             <option value="2">High Risk</option>
           </select>
 
-          <Button variant="outline" size="sm" onClick={() => { setSearch(''); setClassFilter(''); }}>
-            <RefreshCw className="h-4 w-4" />
-            Reset
+          <Button variant="outline" size="sm" onClick={() => { setSearch(''); setClassFilter(''); }} className="shrink-0 px-2 sm:px-3 text-xs sm:text-sm h-10">
+            <RefreshCw className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+            <span className="hidden min-[400px]:inline">Reset</span>
           </Button>
         </div>
       </Card>
@@ -421,8 +421,8 @@ export const Reports = () => {
             </div>
 
             {/* Pagination */}
-            <div className="flex items-center justify-between px-5 py-4 border-t border-slate-800">
-              <p className="text-xs text-slate-500">
+            <div className="flex items-center justify-between px-3 sm:px-5 py-4 border-t border-slate-800">
+              <p className="text-xs text-slate-500 hidden sm:block">
                 Showing {(page - 1) * LIMIT + 1}–{Math.min(page * LIMIT, total)} of {total} reports
               </p>
               <div className="flex items-center gap-1">

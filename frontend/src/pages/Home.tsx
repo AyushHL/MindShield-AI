@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { Shield, Brain, Activity, Lock, ArrowRight, Zap, Users, BarChart3, CheckCircle2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { PublicNavbar } from '../components/layout/Navbar';
@@ -32,7 +32,7 @@ export const Home = () => {
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-violet-500/30 bg-violet-500/10 px-4 py-1.5 text-xs font-medium text-violet-300">
             <Zap className="h-3 w-3" /> Bi-LSTM Based Risk Classification
           </div>
-          <h1 className="text-5xl font-bold leading-tight tracking-tight text-white md:text-6xl lg:text-7xl">
+          <h1 className="text-3xl sm:text-5xl font-bold leading-tight tracking-tight text-white md:text-6xl lg:text-7xl">
             Detect Mental Health
             <span className="block bg-gradient-to-r from-violet-400 to-cyan-400 bg-clip-text text-transparent">Crisis with AI</span>
           </h1>

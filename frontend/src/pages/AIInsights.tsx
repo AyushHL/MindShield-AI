@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Card } from '../components/ui/Card';
 import api from '../services/api';
 import {
@@ -186,7 +186,7 @@ export const AIInsights = () => {
   return (
     <div className="max-w-6xl mx-auto space-y-8">
       {/* Header */}
-      <div className="flex items-start justify-between">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-white flex items-center gap-2">
             <BrainCircuit className="h-6 w-6 text-violet-400" /> AI Insights

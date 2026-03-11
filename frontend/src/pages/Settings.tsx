@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import {
   User, Lock, Trash2, ShieldCheck, Save, Eye, EyeOff,
   CheckCircle2, AlertTriangle, XCircle, Calendar, Mail,
@@ -232,7 +232,7 @@ export const Settings = () => {
   const initial = (profile.username?.[0] || '?').toUpperCase();
 
   return (
-    <div className="relative min-h-full p-6 md:p-8">
+    <div className="relative min-h-full p-2 sm:p-6 md:p-8">
 
       {/* Toast stack */}
       <div className="fixed right-5 top-5 z-50 flex flex-col gap-2">
