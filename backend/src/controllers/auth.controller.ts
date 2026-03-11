@@ -235,7 +235,7 @@ export const forgotPassword = async (req: Request, res: Response, next: NextFunc
     const user = await User.findOne({ email });
 
     if (!user) {
-      return res.json({ message: 'If that email is registered, an OTP has been sent.' });
+      return res.status(404).json({ message: 'No account found with this email address.' });
     }
 
     const otp = crypto.randomInt(100000, 999999).toString();
