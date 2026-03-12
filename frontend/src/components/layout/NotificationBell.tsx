@@ -103,7 +103,7 @@ export const NotificationBell: React.FC = () => {
 
             {/* Dropdown */}
             {open && (
-                <div className="absolute right-0 top-12 w-80 rounded-xl border border-slate-800 bg-slate-900 shadow-xl shadow-black/40 animate-scale-in z-50">
+                <div className="absolute right-0 top-12 w-72 sm:w-80 rounded-xl border border-slate-800 bg-slate-900 shadow-xl shadow-black/40 animate-scale-in z-50 origin-top-right">
                     {/* Header */}
                     <div className="flex items-center justify-between px-4 py-3 border-b border-slate-800">
                         <p className="text-sm font-semibold text-white">Notifications</p>
@@ -115,7 +115,7 @@ export const NotificationBell: React.FC = () => {
                     </div>
 
                     {/* List */}
-                    <div className="max-h-72 overflow-y-auto">
+                    <div className="max-h-64 sm:max-h-72 overflow-y-auto">
                         {loading ? (
                             <div className="space-y-3 p-4">
                                 {[1, 2, 3].map(i => <div key={i} className="h-10 rounded-lg bg-slate-800 animate-pulse" />)}
