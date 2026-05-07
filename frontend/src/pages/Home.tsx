@@ -9,7 +9,7 @@ export const Home = () => {
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('signup');
 
   const openSignup = () => { setAuthMode('signup'); setAuthOpen(true); };
-  const openLogin  = () => { setAuthMode('login');  setAuthOpen(true); };
+  const openLogin = () => { setAuthMode('login'); setAuthOpen(true); };
 
   return (
     <motion.div
@@ -21,7 +21,7 @@ export const Home = () => {
     >
       <PublicNavbar onLoginClick={openLogin} onSignupClick={openSignup} />
       {authOpen && <AuthModal isOpen={authOpen} defaultTab={authMode} onClose={() => setAuthOpen(false)} />}
-      
+
       {/* Hero */}
       <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 pt-16">
         <div className="pointer-events-none absolute inset-0">
@@ -135,7 +135,8 @@ export const Home = () => {
           <div className="flex items-center gap-2">
             <Shield className="h-5 w-5 text-violet-500" />
             <span className="font-semibold text-slate-300">MindShield AI</span>
-            <span>· Delhi Technological University, Delhi, India </span>
+            <span>·</span>
+            <span>Delhi Technological University, Delhi, India</span>
           </div>
           <p>© {new Date().getFullYear()} MindShield. All rights reserved.</p>
         </div>
