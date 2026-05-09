@@ -49,7 +49,7 @@ def clean_text(text: str) -> str:
 
 def load_artifacts():
     try:
-        base_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'models', 'artifacts')
+        base_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'Artifacts', 'Models')
         
         # Load Model
         model_path = os.path.join(base_path, 'bilstm_model.keras')

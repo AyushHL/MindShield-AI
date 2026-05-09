@@ -31,7 +31,7 @@ TOKEN_PATTERN = re.compile(r"[^a-zA-Z0-9\s]")
 stop_words  = set(stopwords.words('english'))
 lemmatizer  = WordNetLemmatizer()
 
-BASE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'models', 'artifacts')
+BASE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'Artifacts', 'Models')
 
 # Load artifacts once at startup
 print("Loading model artifacts …")

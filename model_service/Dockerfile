@@ -8,7 +8,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy Application Source
 COPY app.py .
-COPY models/ models/
+COPY Artifacts/ Artifacts/
 
 # Download NLTK Data at Build Time
 RUN python -c "import nltk; nltk.download('stopwords'); nltk.download('wordnet'); nltk.download('omw-1.4')"
