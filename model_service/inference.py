@@ -30,6 +30,15 @@ MAX_SEQUENCE_LENGTH = 100
 TOKEN_PATTERN = re.compile(r"[^a-zA-Z0-9\s]")
 
 def clean_text(text: str) -> str:
+    # Remove URLs
+    text = re.sub(r"http\S+|www\.\S+", " ", text)
+    # Remove HTML tags
+    text = re.sub(r"<[^>]+>", " ", text)
+    # Remove @mentions
+    text = re.sub(r"@\w+", " ", text)
+    # Remove Hashtag Symbols but Keep the Word
+    text = re.sub(r"#", " ", text)
+
     text = text.lower()
     text = TOKEN_PATTERN.sub(" ", text)
     text = re.sub(r"\s+", " ", text).strip()
