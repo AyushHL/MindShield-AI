@@ -26,7 +26,7 @@ stop_words = set(stopwords.words('english'))
 lemmatizer = WordNetLemmatizer()
 
 # Configuration (Must match training config)
-MAX_SEQUENCE_LENGTH = 100
+MAX_SEQUENCE_LENGTH = 60
 TOKEN_PATTERN = re.compile(r"[^a-zA-Z0-9\s]")
 
 def clean_text(text: str) -> str:

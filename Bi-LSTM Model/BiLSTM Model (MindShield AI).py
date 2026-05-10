@@ -33,13 +33,15 @@ stop_words = set(stopwords.words('english'))
 lemmatizer = WordNetLemmatizer()
 
 class Config:
-    MAX_SEQUENCE_LENGTH = 100
-    VOCAB_SIZE = 10000
-    EMBEDDING_DIM = 200
-    LSTM_UNITS = 128
+    MAX_SEQUENCE_LENGTH = 60
+    VOCAB_SIZE = 6000
+    EMBEDDING_DIM = 120
+    LSTM_UNITS = 300
+    SPATIAL_DROPOUT_RATE = 0.8
     DROPOUT_RATE = 0.5
-    BATCH_SIZE = 64
-    EPOCHS = 1000
+    RECURRENT_DROPOUT_RATE = 0.5
+    BATCH_SIZE = 50
+    EPOCHS = 25
     TEST_SPLIT = 0.15                      # 15% for Test Set
     VAL_SPLIT = 0.176                      # 0.176 of Remaining 85% ≈ 15% of Total
     RANDOM_SEED = 42
@@ -151,16 +153,23 @@ def build_model(num_classes: int) -> tf.keras.Model:
         output_dim=Config.EMBEDDING_DIM,
         input_length=Config.MAX_SEQUENCE_LENGTH,
     )(inputs)
+    x = tf.keras.layers.SpatialDropout1D(Config.SPATIAL_DROPOUT_RATE)(x)
     x = tf.keras.layers.Bidirectional(
-        tf.keras.layers.LSTM(Config.LSTM_UNITS, return_sequences=False)
+        tf.keras.layers.LSTM(
+            Config.LSTM_UNITS,
+            dropout=Config.DROPOUT_RATE,
+            recurrent_dropout=Config.RECURRENT_DROPOUT_RATE,
+        )
     )(x)
     x = tf.keras.layers.Dropout(Config.DROPOUT_RATE)(x)
+    x = tf.keras.layers.Flatten()(x)
     x = tf.keras.layers.Dense(64, activation="relu")(x)
+    x = tf.keras.layers.Dropout(Config.DROPOUT_RATE)(x)
     outputs = tf.keras.layers.Dense(num_classes, activation="softmax")(x)
 
     model = tf.keras.Model(inputs=inputs, outputs=outputs)
     model.compile(
-        optimizer=tf.keras.optimizers.Adam(learning_rate=1e-3),
+        optimizer=tf.keras.optimizers.Adam(),
         loss="sparse_categorical_crossentropy",
         metrics=["accuracy"],
     )
@@ -241,7 +250,7 @@ def compute_optimal_thresholds(model, X_val, y_val, class_names):
 
     return thresholds
 
-def train_kaggle_model(csv_path_str: str):
+def train_model(csv_path_str: str):
     print(f"--- Preparing Data from: {csv_path_str} ---")
     data_path = Path(csv_path_str)
 
@@ -287,17 +296,29 @@ def train_kaggle_model(csv_path_str: str):
     Config.MODELS_DIR.mkdir(parents=True, exist_ok=True)
 
     callbacks = [
+        tf.keras.callbacks.ModelCheckpoint(
+            str(Config.MODEL_PATH),
+            monitor="val_accuracy",
+            mode="max",
+            save_best_only=True,
+            verbose=1,
+        ),
         tf.keras.callbacks.EarlyStopping(
-            monitor="val_loss",
+            monitor="val_accuracy",
+            mode="max",
             patience=Config.EARLY_STOPPING_PATIENCE,
             restore_best_weights=True,
             verbose=1,
         ),
-        tf.keras.callbacks.ModelCheckpoint(
-            str(Config.MODEL_PATH),
+        tf.keras.callbacks.ReduceLROnPlateau(
             monitor="val_loss",
-            save_best_only=True,
+            factor=0.1,
+            patience=5,
             verbose=1,
+            mode="min",
+            min_delta=0.0001,
+            cooldown=0,
+            min_lr=0,
         ),
     ]
 
@@ -353,7 +374,7 @@ def train_kaggle_model(csv_path_str: str):
 DATASET_PATH = "/kaggle/input/datasets/ayush120/multiclass-suicidal-ideation-dataset/Relabelled_Cleaned_Dataset.csv"
 
 if os.path.exists(DATASET_PATH):
-    history, test_metrics, model, X_test, y_test = train_kaggle_model(DATASET_PATH)
+    history, test_metrics, model, X_test, y_test = train_model(DATASET_PATH)
 else:
     print(f"❌ Error: Dataset not Fund at {DATASET_PATH}. Please Check the Path and Try Again.")
 

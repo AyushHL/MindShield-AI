@@ -25,7 +25,7 @@ for corpus in ['stopwords', 'wordnet', 'omw-1.4']:
         nltk.download(corpus, quiet=True)
 
 # Constants
-MAX_SEQUENCE_LENGTH = 100
+MAX_SEQUENCE_LENGTH = 60
 TOKEN_PATTERN = re.compile(r"[^a-zA-Z0-9\s]")
 
 stop_words  = set(stopwords.words('english'))
