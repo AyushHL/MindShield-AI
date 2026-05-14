@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
@@ -89,8 +89,8 @@ export const Dashboard = () => {
   const statCards = [
     { label: 'Total Analyses', value: totalAnalyses, icon: Activity },
     { label: 'High Risk Flags', value: highRiskFlags, icon: ShieldX },
-    { label: 'Model Accuracy', value: '~91%', icon: TrendingUp },
-    { label: 'Avg. Latency', value: '<1s', icon: Brain },
+    { label: 'Model Accuracy', value: '84.05%', icon: TrendingUp },
+    { label: 'Avg. Latency', value: '~200ms', icon: Brain },
   ];
 
   const handlePredict = async () => {
