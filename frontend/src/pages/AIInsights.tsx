@@ -364,7 +364,7 @@ export const AIInsights = () => {
                 {[
                   { label: 'Architecture',   value: 'Bidirectional LSTM' },
                   { label: 'Classes',         value: '3  (No Risk · Potential · High Risk)' },
-                  { label: 'Accuracy',        value: '~91%' },
+                  { label: 'Accuracy',        value: '84.05%' },
                   { label: 'Avg Latency',     value: '< 1 s' },
                   { label: 'Input',           value: 'Free-form text / uploaded files' },
                   { label: 'Framework',       value: 'TensorFlow / Keras' },
