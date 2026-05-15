@@ -15,6 +15,12 @@
 | **Frontend** | React · Vite · TypeScript · Tailwind CSS v4 | `5173` | Netlify |
 | **Database** | MongoDB-compatible API | — | Azure Cosmos DB |
 
+### Resources
+
+- **Model (Kaggle):** [MindShield AI Bi-LSTM Model](https://www.kaggle.com/code/ayush120/bilstm-model-mindshield-ai)
+- **Dataset (Kaggle):** [Multiclass Suicidal Ideation Dataset](https://www.kaggle.com/datasets/ayush120/multiclass-suicidal-ideation-dataset)
+- **Dataset Preparation (Kaggle):** [Dataset Preparation & Cleaning](https://www.kaggle.com/code/ayush120/data-preparation-or-cleaning)
+
 ---
 
 ## Prerequisites
@@ -71,9 +77,6 @@ cd model_service
 pip install -r requirements.txt
 ```
 
-Model Link (Kaggle): [MindShield AI Bi-LSTM Model](https://www.kaggle.com/code/ayush120/bilstm-model-mindshield-ai)
-Dataset Link (Kaggle): [Multiclass Suicidal Ideation Dataset](https://www.kaggle.com/datasets/ayush120/multiclass-suicidal-ideation-dataset)
-Dataset Preparation Link (Kaggle): [Dataset Peparation or Cleaning](https://www.kaggle.com/code/ayush120/data-preparation-or-cleaning)
 
 Required model files (must already be present in `model_service/`):
 - `bilstm_model.keras`
