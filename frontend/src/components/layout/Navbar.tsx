@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { ChevronDown, LogOut, Settings, Shield, Menu, X } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { NotificationBell } from './NotificationBell';
@@ -19,6 +19,17 @@ export const DashboardNavbar: React.FC<DashboardNavbarProps> = ({ sidebarCollaps
   const [user, setUser] = useState(readUser);
   const ref = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const getPageName = () => {
+    const path = location.pathname;
+    if (path.includes('/reports')) return 'Reports';
+    if (path.includes('/insights')) return 'AI Insights';
+    if (path.includes('/crisis-protocols')) return 'Crisis Protocols';
+    if (path.includes('/settings')) return 'Settings';
+    if (path.includes('/contact')) return 'Contact';
+    return 'Dashboard';
+  };
 
   useEffect(() => {
     // Close dropdown on outside click
@@ -61,7 +72,7 @@ export const DashboardNavbar: React.FC<DashboardNavbarProps> = ({ sidebarCollaps
         <Shield className="h-5 w-5 text-violet-500" />
         <span className="text-sm font-medium text-slate-300 hidden sm:inline">MindShield AI</span>
         <span className="text-slate-600 hidden sm:inline">/</span>
-        <span className="text-sm text-slate-500 hidden sm:inline">Dashboard</span>
+        <span className="text-sm text-slate-500 hidden sm:inline">{getPageName()}</span>
       </div>
 
       <div className="flex items-center gap-3">
