@@ -12,6 +12,7 @@ const navItems = [
   { to: '/dashboard/insights',          icon: BrainCircuit,    label: 'AI Insights'      },
   { to: '/dashboard/crisis-protocols',  icon: AlertTriangle,   label: 'Crisis Protocols' },
   { to: '/dashboard/settings',          icon: Settings,        label: 'Settings'         },
+  { to: '/dashboard/chatbot',          icon: Settings,        label: 'Chatbot'          },
 ];
 
 const bottomItems = [
