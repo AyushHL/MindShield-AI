@@ -1,0 +1,8 @@
+{
+  "thresholds": {
+    "no_risk": 0.45,
+    "low_risk": 0.6,
+    "high_risk": 0.3
+  },
+  "description": "Per-Class Probability thresholds Optimized for F1 on Validation Set"
+}

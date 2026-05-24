@@ -2,7 +2,7 @@
 
 > AI-powered early-warning platform using a Bi-LSTM neural network for three-tier risk classification.
 
-🌐 **Live**: [https://mindshield-ai.netlify.app/](https://mindshield-ai.netlify.app/)
+🌐 **Live**: [MindShield AI](https://www.MindShieldAI.online/)
 
 ---
 
@@ -14,6 +14,12 @@
 | **Backend API** | Node.js · Express · TypeScript | `5001` | Azure Web App |
 | **Frontend** | React · Vite · TypeScript · Tailwind CSS v4 | `5173` | Netlify |
 | **Database** | MongoDB-compatible API | — | Azure Cosmos DB |
+
+### Resources
+
+- **Model (Kaggle):** [MindShield AI Bi-LSTM Model](https://www.kaggle.com/code/ayush120/bilstm-model-mindshield-ai)
+- **Dataset (Kaggle):** [Multiclass Suicidal Ideation Dataset](https://www.kaggle.com/datasets/ayush120/multiclass-suicidal-ideation-dataset)
+- **Dataset Preparation (Kaggle):** [Dataset Preparation & Cleaning](https://www.kaggle.com/code/ayush120/data-preparation-or-cleaning)
 
 ---
 
@@ -71,12 +77,12 @@ cd model_service
 pip install -r requirements.txt
 ```
 
-Model Link (Kaggle): https://www.kaggle.com/code/ayush120/suicide-ideation-project
 
 Required model files (must already be present in `model_service/`):
 - `bilstm_model.keras`
 - `tokenizer.json`
 - `label_encoder.json`
+- `thresholds.json`
 
 ### 2. Backend dependencies
 

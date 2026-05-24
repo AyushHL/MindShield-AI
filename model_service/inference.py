@@ -26,10 +26,19 @@ stop_words = set(stopwords.words('english'))
 lemmatizer = WordNetLemmatizer()
 
 # Configuration (Must match training config)
-MAX_SEQUENCE_LENGTH = 100
+MAX_SEQUENCE_LENGTH = 60
 TOKEN_PATTERN = re.compile(r"[^a-zA-Z0-9\s]")
 
 def clean_text(text: str) -> str:
+    # Remove URLs
+    text = re.sub(r"http\S+|www\.\S+", " ", text)
+    # Remove HTML tags
+    text = re.sub(r"<[^>]+>", " ", text)
+    # Remove @mentions
+    text = re.sub(r"@\w+", " ", text)
+    # Remove Hashtag Symbols but Keep the Word
+    text = re.sub(r"#", " ", text)
+
     text = text.lower()
     text = TOKEN_PATTERN.sub(" ", text)
     text = re.sub(r"\s+", " ", text).strip()
@@ -40,7 +49,7 @@ def clean_text(text: str) -> str:
 
 def load_artifacts():
     try:
-        base_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'models', 'artifacts')
+        base_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'Artifacts', 'Models')
         
         # Load Model
         model_path = os.path.join(base_path, 'bilstm_model.keras')

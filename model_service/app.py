@@ -25,13 +25,13 @@ for corpus in ['stopwords', 'wordnet', 'omw-1.4']:
         nltk.download(corpus, quiet=True)
 
 # Constants
-MAX_SEQUENCE_LENGTH = 100
+MAX_SEQUENCE_LENGTH = 60
 TOKEN_PATTERN = re.compile(r"[^a-zA-Z0-9\s]")
 
 stop_words  = set(stopwords.words('english'))
 lemmatizer  = WordNetLemmatizer()
 
-BASE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'models', 'artifacts')
+BASE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'Artifacts', 'Models')
 
 # Load artifacts once at startup
 print("Loading model artifacts …")
@@ -70,6 +70,15 @@ class PredictResponse(BaseModel):
 
 
 def clean_text(text: str) -> str:
+    # Remove URLs
+    text = re.sub(r"http\S+|www\.\S+", " ", text)
+    # Remove HTML tags
+    text = re.sub(r"<[^>]+>", " ", text)
+    # Remove @mentions
+    text = re.sub(r"@\w+", " ", text)
+    # Remove Hashtag Symbols but Keep the Word
+    text = re.sub(r"#", " ", text)
+
     text = text.lower()
     text = TOKEN_PATTERN.sub(" ", text)
     text = re.sub(r"\s+", " ", text).strip()
