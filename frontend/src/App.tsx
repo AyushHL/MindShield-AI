@@ -8,6 +8,7 @@ import { AIInsights } from './pages/AIInsights';
 import { CrisisProtocols } from './pages/CrisisProtocols';
 import { DashboardLayout } from './components/layout/DashboardLayout';
 import { ChatbotWidget } from './pages/chatbot';
+import RedditRiskAnalyzer from './pages/SocialMedia';
 
 export default function App() {
   return (
@@ -25,6 +26,7 @@ export default function App() {
           <Route path="/dashboard/crisis-protocols" element={<CrisisProtocols />} />
           <Route path="/dashboard/settings" element={<Settings />} />
           <Route path="/dashboard/chatbot" element={<ChatbotWidget />} />
+          <Route path="/dashboard/social-media" element={<RedditRiskAnalyzer />} />
         </Route>
 
         {/* Legacy redirects */}

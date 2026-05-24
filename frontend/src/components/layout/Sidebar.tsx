@@ -13,6 +13,7 @@ const navItems = [
   { to: '/dashboard/crisis-protocols',  icon: AlertTriangle,   label: 'Crisis Protocols' },
   { to: '/dashboard/settings',          icon: Settings,        label: 'Settings'         },
   { to: '/dashboard/chatbot',          icon: Settings,        label: 'Chatbot'          },
+  { to: '/dashboard/social-media',          icon: Settings,        label: 'Social Media Risk Analyzer'          },
 ];
 
 const bottomItems = [
